@@ -1,6 +1,9 @@
 import numpy as np
 import trainer
-import utils
+import fileutils
+import processing
+import tests
+import time
 
 def main():
     #TODO: Load data
@@ -10,15 +13,39 @@ def main():
     #TODO: BatchNorm
     #- https://snow.dog/blog/data-augmentation-for-small-datasets
 
-    trainIds, trainLabels, trainImages = utils.readTrainData('./Data/train.csv')
-    utils.saveImages('./Images/Training', trainImages)
+    # Load Training Data
+    print("Loading training data...", end="", flush=True)
+    _, trainLabelsRaw, trainImagesRaw = fileutils.readTrainDataRaw('./Data/train.csv')
+    print("done.")
 
-    testIds, testImages = io.readTestData('./Data/test.csv')
+    # Load Test Data
+    print("Loading test data...", end="", flush=True)
+    testIds, testImagesRaw = fileutils.readTestData('./Data/test.csv')
+    print("done.")
 
-    #trainedNet = trainer.train(trainIds, trainLabels, trainImages)
-    #testLabels = trainer.evaluate(trainedNet, testImages)
+    # Normalize
+    print("Normalizing data...", end="", flush=True)
+    trainImages = processing.normalizeImages(trainImagesRaw)
+    testImages = processing.normalizeImages(testImagesRaw)
+    trainLabels = processing.convertLabels(trainLabelsRaw)
+    print("done.")
 
-    #io.generateClassificationFile(testIds,testLabels)
+    print("Generating validation set...", end="", flush=True)
+    validationSetSize = int(0.2 * trainImages.shape[0])
+    validationSet = (trainImages[-validationSetSize:], trainLabels[-validationSetSize:])
+    trainImages = trainImages[:-validationSetSize]
+    trainLabels = trainLabels[:-validationSetSize]
+    print("done.")
+
+    # Run Test
+    print("Generating augmented training set...", end="", flush=True)
+    augTrainImages, augTrainLabels = processing.augmentImages(trainImages, trainLabels)
+    print("done.")
+
+    trainedNet = trainer.train(augTrainLabels, augTrainImages, validationSet)
+    testLabels = trainer.evaluate(trainedNet, testImages)
+
+    fileutils.generateClassificationFile(testIds,testLabels)
 
 if __name__ == "__main__":
     main();
