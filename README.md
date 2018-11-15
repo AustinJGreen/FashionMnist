@@ -17,3 +17,4 @@ Here are some things you'll need to get started.
 1. numpy: `pip3 install numpy`
 2. tensorflow with gpu support: `pip3 install tensorflow-gpu`
 3. keras: `pip3 install keras`
+4. python imaging library: `pip3 install Pillow`

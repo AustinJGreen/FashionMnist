@@ -2,6 +2,9 @@
 Data/
 Images/
 
+# Images
+*.png
+
 # Pycharm Project
 .idea/
 
