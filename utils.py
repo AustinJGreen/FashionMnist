@@ -75,7 +75,7 @@ def saveImage(filename, image):
         img = PIL.Image.new('RGB', (width, height), color=(0, 0, 0))
         for x in range(width):
             for y in range(height):
-                grayScaleValue = image[x, y, 0] * 255
+                grayScaleValue = int(image[x, y, 0] * 255)
                 r = grayScaleValue
                 g = grayScaleValue
                 b = grayScaleValue

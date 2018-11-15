@@ -1,13 +1,19 @@
 import numpy as np
 import trainer
-import io
+import utils
 
 def main():
     #TODO: Load data
-    trainIds, trainLabels, trainImages = io.readTrainData('./Data/train.csv')
-    io.saveImages('./Images/Training', trainImages)
+    #TODO: Augment data
+    #TODO: https://keras.io/initializers/
+    #TODO: Tensorboard
+    #TODO: BatchNorm
+    #- https://snow.dog/blog/data-augmentation-for-small-datasets
 
-    #testIds, testImages = io.readTestData('./Data/test.csv')
+    trainIds, trainLabels, trainImages = utils.readTrainData('./Data/train.csv')
+    utils.saveImages('./Images/Training', trainImages)
+
+    testIds, testImages = io.readTestData('./Data/test.csv')
 
     #trainedNet = trainer.train(trainIds, trainLabels, trainImages)
     #testLabels = trainer.evaluate(trainedNet, testImages)
