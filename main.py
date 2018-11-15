@@ -6,12 +6,10 @@ import tests
 import time
 
 def main():
-    #TODO: Load data
-    #TODO: Augment data
+
     #TODO: https://keras.io/initializers/
     #TODO: Tensorboard
     #TODO: BatchNorm
-    #- https://snow.dog/blog/data-augmentation-for-small-datasets
 
     # Load Training Data
     print("Loading training data...", end="", flush=True)
