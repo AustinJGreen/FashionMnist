@@ -61,6 +61,9 @@ def readTestData(filename):
         print("Loaded (%s/%s) test images." % (imageIndex, 10000))
     return testIds, testImages
 
+def drawImages(imageDataset):
+    return
+
 def generateClassificationFile(testIds,testLabels):
     f = open('./Data/prediction.csv', 'w')
     f.write("Id,label\n")
