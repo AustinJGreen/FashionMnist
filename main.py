@@ -1,9 +1,6 @@
-import numpy as np
 import trainer
 import fileutils
 import processing
-import tests
-import time
 
 def main():
 
