@@ -26,16 +26,13 @@ def buildNN():
 
     return net
 
-def train(trainIds, trainLabels, trainImages):
+def train(trainLabels, trainImages, validationSet):
     net = buildNN()
-
-    # Convert labels to categorical one-hot encoding
-    onehotLabels = keras.utils.to_categorical(trainLabels, num_classes=10)
 
     #Train network
     optimizer = Adam(lr=0.0001, beta_1=0.5)
     net.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-    net.fit(trainImages,onehotLabels,batch_size=100,epochs=100,verbose=1,shuffle=True,validation_split=0.15)
+    net.fit(trainImages,trainLabels,batch_size=100,epochs=100,verbose=1,shuffle=True,validation_data=validationSet)
     return net
 
 def evaluate(network, testImages):

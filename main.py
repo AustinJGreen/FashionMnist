@@ -1,85 +1,49 @@
 import numpy as np
 import trainer
-
-def readTrainData(filename):
-    f = open(filename,'r')
-    fileData = f.readlines() # Consume header line
-    f.close()
-    trainIds = np.zeros((60000,1),dtype=int)
-    trainLabels = np.zeros((60000,1),dtype=int)
-    trainImages = np.zeros((60000,28,28,1),dtype=float)
-    for imageIndex in range(60000):
-        # Extract image data
-        imageData = fileData[imageIndex + 1].split(',')
-
-        # Extract id and label
-        trainIds[imageIndex] = int(imageData[0])
-        trainLabels[imageIndex] = int(imageData[1])
-
-        # Extract pixels
-        # Pixels are stored in X = r * 28 + c
-        # Pixels are valued [0, 255]
-        imageMatrix = np.zeros((28,28,1), dtype=float)
-        for x in range(784):
-            dataIndex = x + 2;
-            pixelValue = int(imageData[dataIndex])
-
-            row = int(x / 28)
-            column = int(x % 28)
-            imageMatrix[column,row,0] = pixelValue / 255.0
-
-        trainImages[imageIndex] = imageMatrix
-        print("Loaded (%s/%s) train images." % (imageIndex, 60000))
-    return trainIds, trainLabels, trainImages
-
-def readTestData(filename):
-    f = open(filename,'r')
-    fileData = f.readlines() # Consume header line
-    f.close()
-    testIds = np.zeros((10000,1),dtype=int)
-    testImages = np.zeros((10000,28,28,1),dtype=float)
-    for imageIndex in range(10000):
-        # Extract image data
-        imageData = fileData[imageIndex + 1].split(',')
-
-        # Extract id and label
-        testIds[imageIndex] = int(imageData[0])
-
-        # Extract pixels
-        # Pixels are stored in X = r * 28 + c
-        # Pixels are valued [0, 255]
-        imageMatrix = np.zeros((28,28,1), dtype=float)
-        for x in range(784):
-            dataIndex = x + 1;
-            pixelValue = int(imageData[dataIndex])
-
-            row = int(x / 28)
-            column = int(x % 28)
-            imageMatrix[column,row,0] = pixelValue / 255.0
-
-        testImages[imageIndex] = imageMatrix
-        print("Loaded (%s/%s) test images." % (imageIndex, 10000))
-    return testIds, testImages
-
-def drawImages(imageDataset):
-    return
-
-def generateClassificationFile(testIds,testLabels):
-    f = open('./Data/prediction.csv', 'w')
-    f.write("Id,label\n")
-    for i in range(len(testLabels)):
-        f.write(format("%s,%s\n" % (testIds[i][0], testLabels[i])))
-    f.close()
+import fileutils
+import processing
+import tests
+import time
 
 def main():
-    #TODO: Load data
-    trainIds, trainLabels, trainImages = readTrainData('./Data/train.csv')
-    testIds, testImages = readTestData('./Data/test.csv')
 
-    trainedNet = trainer.train(trainIds, trainLabels, trainImages)
+    #TODO: https://keras.io/initializers/
+    #TODO: Tensorboard
+    #TODO: BatchNorm
+
+    # Load Training Data
+    print("Loading training data...", end="", flush=True)
+    _, trainLabelsRaw, trainImagesRaw = fileutils.readTrainDataRaw('./Data/train.csv')
+    print("done.")
+
+    # Load Test Data
+    print("Loading test data...", end="", flush=True)
+    testIds, testImagesRaw = fileutils.readTestData('./Data/test.csv')
+    print("done.")
+
+    # Normalize
+    print("Normalizing data...", end="", flush=True)
+    trainImages = processing.normalizeImages(trainImagesRaw)
+    testImages = processing.normalizeImages(testImagesRaw)
+    trainLabels = processing.convertLabels(trainLabelsRaw)
+    print("done.")
+
+    print("Generating validation set...", end="", flush=True)
+    validationSetSize = int(0.2 * trainImages.shape[0])
+    validationSet = (trainImages[-validationSetSize:], trainLabels[-validationSetSize:])
+    trainImages = trainImages[:-validationSetSize]
+    trainLabels = trainLabels[:-validationSetSize]
+    print("done.")
+
+    # Run Test
+    print("Generating augmented training set...", end="", flush=True)
+    augTrainImages, augTrainLabels = processing.augmentImages(trainImages, trainLabels)
+    print("done.")
+
+    trainedNet = trainer.train(augTrainLabels, augTrainImages, validationSet)
     testLabels = trainer.evaluate(trainedNet, testImages)
 
-    generateClassificationFile(testIds,testLabels)
+    fileutils.generateClassificationFile(testIds,testLabels)
 
 if __name__ == "__main__":
     main();
