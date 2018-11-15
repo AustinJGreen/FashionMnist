@@ -2,6 +2,9 @@
 Data/
 Images/
 
+# Pycharm Project
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
