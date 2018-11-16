@@ -1,8 +1,9 @@
 import trainer
 import fileutils
 import processing
+import keras
 
-def main():
+def train():
 
     #TODO: https://keras.io/initializers/
     #TODO: Tensorboard
@@ -13,20 +14,14 @@ def main():
     _, trainLabelsRaw, trainImagesRaw = fileutils.readTrainDataRaw('./Data/train.csv')
     print("done.")
 
-    # Load Test Data
-    print("Loading test data...", end="", flush=True)
-    testIds, testImagesRaw = fileutils.readTestData('./Data/test.csv')
-    print("done.")
-
     # Normalize
     print("Normalizing data...", end="", flush=True)
     trainImages = processing.normalizeImages(trainImagesRaw)
-    testImages = processing.normalizeImages(testImagesRaw)
     trainLabels = processing.convertLabels(trainLabelsRaw)
     print("done.")
 
     print("Generating validation set...", end="", flush=True)
-    validationSetSize = int(0.2 * trainImages.shape[0])
+    validationSetSize = int(0.15 * trainImages.shape[0])
     validationSet = (trainImages[-validationSetSize:], trainLabels[-validationSetSize:])
     trainImages = trainImages[:-validationSetSize]
     trainLabels = trainLabels[:-validationSetSize]
@@ -37,10 +32,29 @@ def main():
     augTrainImages, augTrainLabels = processing.augmentImages(trainImages, trainLabels)
     print("done.")
 
-    trainedNet = trainer.train(augTrainLabels, augTrainImages, validationSet)
-    testLabels = trainer.evaluate(trainedNet, testImages)
+    trainer.train(augTrainLabels, augTrainImages, validationSet)
 
+def eval():
+
+    # Load Test Data
+    print("Loading test data...", end="", flush=True)
+    testIds, testImagesRaw = fileutils.readTestData('./Data/test.csv')
+    print("done.")
+
+    # Normalize
+    print("Normalizing data...", end="", flush=True)
+    testImages = processing.normalizeImages(testImagesRaw)
+    print("done.")
+
+    # Load best
+    print("Evaluating test set...", end="", flush=True)
+    testLabels = trainer.evaluate(testImages)
+    print("done.")
+
+    print("Generating classification CSV...", end="", flush=True)
     fileutils.generateClassificationFile(testIds,testLabels)
+    print("done.")
 
 if __name__ == "__main__":
-    main();
+    #eval()
+    train()

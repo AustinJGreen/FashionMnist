@@ -52,8 +52,8 @@ def saveImage(filename, image):
         print(e)
 
 def generateClassificationFile(testIds,testLabels):
-    f = open('./Data/prediction.csv', 'w')
+    f = open('./prediction.csv', 'w')
     f.write("Id,label\n")
     for i in range(len(testLabels)):
-        f.write(format("%s,%s\n" % (testIds[i][0], testLabels[i])))
+        f.write(format("%s,%s\n" % (testIds[i], testLabels[i])))
     f.close()

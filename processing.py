@@ -30,5 +30,4 @@ def augmentImages(images, labels):
 
     # Add labels
     augLabels = np.concatenate((labels, labels), axis=0)
-
     return augImages, augLabels
