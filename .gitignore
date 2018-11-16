@@ -1,6 +1,10 @@
 # Data directories
 Data/
 Images/
+Tensorboard/
+
+# Data files
+*.csv
 
 # Images
 *.png

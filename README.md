@@ -23,4 +23,7 @@ Here are some things you'll need to get started.
 4. python imaging library: `pip3 install Pillow`
 
 ### Downloading the dataset
-The csv files are too large for us to put in the **Data** folder. Download the dataset [here](https://www.kaggle.com/c/10548/download-all) and put train.csv and test.csv in the **Data** folder.
+The csv files are too large for us to put in the repository. 
+1. Create a folder called **Data** 
+2. Download the dataset [here](https://www.kaggle.com/c/10548/download-all)
+3. Put train.csv and test.csv in the **Data** folder you created.
