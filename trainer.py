@@ -6,33 +6,38 @@ import keras
 
 def buildNN():
 
+    weightInitializer = keras.initializers.RandomUniform(minval=-0.05, maxval=0.05, seed=None)
+
     net = Sequential()
     net.add(InputLayer((28, 28, 1)))
 
-    net.add(Conv2D(128, kernel_size=3))
+    net.add(Conv2D(256, kernel_size=5,kernel_initializer=weightInitializer))
     net.add(LeakyReLU(alpha=0.2))
     net.add(MaxPooling2D(pool_size=(2, 2)))
-    net.add(Dropout(0.1))
 
-    net.add(Conv2D(64, kernel_size=5))
+    net.add(Conv2D(128, kernel_size=5,kernel_initializer=weightInitializer))
     net.add(LeakyReLU(alpha=0.2))
     net.add(MaxPooling2D(pool_size=(2, 2)))
-    net.add(Dropout(0.1))
 
     net.add(Flatten())
-    net.add(Dense(32, activation=None))
+    net.add(Dense(64, activation=None, kernel_initializer=weightInitializer))
     net.add(LeakyReLU(alpha=0.2))
     net.add(Dense(10, activation='softmax'))
 
     return net
 
 def train(trainLabels, trainImages, validationSet):
-    net = buildNN()
 
-    #Train network
-    optimizer = Adam(lr=0.0001, beta_1=0.5)
+    # Create network and configure optimizer
+    net = buildNN()
+    optimizer = SGD(lr=0.001)
     net.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-    net.fit(trainImages,trainLabels,batch_size=100,epochs=100,verbose=1,shuffle=True,validation_data=validationSet)
+
+    # Create callback for automatically saving best model based on highest validation accuracy
+    checkpointCallback = keras.callbacks.ModelCheckpoint('model.h5', monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+
+    # Train network
+    net.fit(trainImages,trainLabels,batch_size=100,epochs=200,verbose=2,shuffle=True,validation_data=validationSet,callbacks=[checkpointCallback])
     return net
 
 def evaluate(network, testImages):
