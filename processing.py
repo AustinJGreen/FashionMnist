@@ -31,3 +31,15 @@ def augmentImages(images, labels):
     # Add labels
     augLabels = np.concatenate((labels, labels), axis=0)
     return augImages, augLabels
+
+def shuffle(images, labels):
+
+    size = images.shape[0]
+    shuffledImages = None
+    shuffledLabels = None
+    for i in range(10):
+        permutation = np.random.permutation(size)
+        shuffledImages = images[permutation]
+        shuffledLabels = labels[permutation]
+
+    return shuffledImages, shuffledLabels

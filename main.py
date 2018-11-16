@@ -2,12 +2,10 @@ import trainer
 import fileutils
 import processing
 import keras
+import numpy
 
 def train():
-
-    #TODO: https://keras.io/initializers/
-    #TODO: Tensorboard
-    #TODO: BatchNorm
+    #TODO: Try https://github.com/maxim5/hyper-engine
 
     # Load Training Data
     print("Loading training data...", end="", flush=True)
@@ -32,6 +30,11 @@ def train():
     augTrainImages, augTrainLabels = processing.augmentImages(trainImages, trainLabels)
     print("done.")
 
+    # Shuffle data very well
+    print("Shuffling data...", end="", flush=True)
+    augTrainImages, augTrainLabels = processing.shuffle(augTrainImages, augTrainLabels)
+    print("done.")
+
     trainer.train(augTrainLabels, augTrainImages, validationSet)
 
 def eval():
@@ -47,9 +50,8 @@ def eval():
     print("done.")
 
     # Load best
-    print("Evaluating test set...", end="", flush=True)
+    print("Evaluating test set...")
     testLabels = trainer.evaluate(testImages)
-    print("done.")
 
     print("Generating classification CSV...", end="", flush=True)
     fileutils.generateClassificationFile(testIds,testLabels)
