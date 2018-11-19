@@ -1,25 +1,19 @@
 import trainer
 import fileutils
 import processing
-import subprocess
-import os
-import atexit
-import time
+import numpy as np
+import tests
 
 def train():
-
-    #TODO: Add resume to training
-    #TODO: Try https://github.com/maxim5/hyper-engine
-
     # Load Training Data
     print("Loading training data...", end="", flush=True)
-    _, trainLabelsRaw, trainImagesRaw = fileutils.readTrainDataRaw('./Data/train.csv')
+    _, yTrain, xTrain = fileutils.readTrainDataRaw('./Data/train.csv')
     print("done.")
 
     # Normalize
     print("Normalizing data...", end="", flush=True)
-    trainImages = processing.normalizeImages(trainImagesRaw)
-    trainLabels = processing.convertLabels(trainLabelsRaw)
+    trainImages = processing.normalizeImages(xTrain)
+    trainLabels = processing.convertLabels(yTrain)
     print("done.")
 
     # Shuffle data very well
@@ -66,13 +60,13 @@ def eval():
     fileutils.generateClassificationFile(testIds,testLabels)
     print("done.")
 
-def onExit():
-    print("Closing objects....", end="", flush=True)
-    trainer.closeTensorboard()
-    print("done.")
+def checkPaths():
+    fileutils.checkPath("Data")
+    fileutils.checkPath("Images")
+    fileutils.checkPath("Tensorboard")
 
 if __name__ == "__main__":
-    atexit.register(onExit)
+    checkPaths()
 
     #eval()
     train()

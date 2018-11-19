@@ -1,6 +1,16 @@
 import PIL
 import numpy as np
+import os
 import multiprocessing
+
+def checkPath(name):
+    baseDir = os.getcwd()
+    localDir = "%s\\%s\\" % (baseDir, name)
+    if not os.path.exists(localDir):
+        os.makedirs(localDir)
+        return True
+
+    return False
 
 def readCsvData(filename):
     f = open(filename, 'r')
@@ -56,4 +66,9 @@ def generateClassificationFile(testIds,testLabels):
     f.write("Id,label\n")
     for i in range(len(testLabels)):
         f.write(format("%s,%s\n" % (testIds[i], testLabels[i])))
+    f.close()
+
+def saveText(filename, text):
+    f = open(filename, 'w')
+    f.write(text)
     f.close()
