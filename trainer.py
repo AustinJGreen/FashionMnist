@@ -1,39 +1,47 @@
 from keras.models import Sequential
-from keras.layers import InputLayer, MaxPooling2D, Conv2D, LeakyReLU, BatchNormalization, Dense, Softmax, Flatten, Dropout, SpatialDropout2D, GaussianNoise
+from keras.layers import InputLayer, AveragePooling2D, Conv2D, LeakyReLU, BatchNormalization, Dense, Softmax, Flatten, SpatialDropout2D
 from keras.optimizers import SGD, Adam
 from keras.models import load_model
-import numpy as np
+import psutil
 import os
 from subprocess import Popen
 import keras
+import customlayers
+import fileutils
 
-def buildNN():
+def buildNetwork():
 
-    kernelInit = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
+    #kernelInit = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
+    #kernelRegulizer = keras.regularizers.l2(0.001)
+    #biasRegularizer = keras.regularizers.l2(0.001)
 
-    # NOTE: Don't use input layer, otherwise the model cannot be loaded from an h5 file due to a bug in keras
     net = Sequential()
-    net.add(GaussianNoise(stddev=0.1, input_shape=(28, 28, 1)))
-    net.add(Conv2D(256, kernel_size=5,kernel_initializer=kernelInit))
-    net.add(BatchNormalization(momentum=0.8))
+    net.add(Conv2D(128, kernel_size=9, input_shape=(28, 28, 1)))
     net.add(LeakyReLU(alpha=0.2))
-    net.add(MaxPooling2D(pool_size=(2, 2)))
-    net.add(SpatialDropout2D(0.25))
+    net.add(BatchNormalization(momentum=0.8))
+    net.add(AveragePooling2D(pool_size=(2, 2)))
+    net.add(SpatialDropout2D(0.5))
 
-    net.add(Conv2D(128, kernel_size=3,kernel_initializer=kernelInit))
-    net.add(BatchNormalization(momentum=0.8))
+    net.add(Conv2D(64, kernel_size=5))
     net.add(LeakyReLU(alpha=0.2))
-    net.add(MaxPooling2D(pool_size=(2, 2)))
-    net.add(SpatialDropout2D(0.25))
+    net.add(BatchNormalization(momentum=0.8))
+    net.add(AveragePooling2D(pool_size=(2, 2)))
+    net.add(SpatialDropout2D(0.5))
 
     net.add(Flatten())
-    net.add(Dense(64, activation=None, kernel_initializer=kernelInit))
+    net.add(Dense(128, activation=None))
     net.add(LeakyReLU(alpha=0.2))
+    net.add(BatchNormalization(momentum=0.8))
     net.add(Dense(10, activation='softmax'))
 
     return net
 
 def startTensorboard():
+    #Check if tensorboard is already running
+    for p in psutil.process_iter():
+        if p.name() == "tensorboard.exe":
+            return # Already open
+
     # Delete old tensorflow data
     paths = os.listdir('./Tensorboard')
     for path in paths:
@@ -46,15 +54,17 @@ def startTensorboard():
     logDir = '%s\\Tensorboard' % currentPath
     Popen(['tensorboard', '--logdir=%s' % logDir], shell=True)
 
-def closeTensorboard():
-    # Kill any tensorboard tasks
-    Popen(['taskkill', '/IM', 'tensorboard.exe', '/F'])
-
-def train(trainLabels, trainImages, validationSet):
+def train(trainLabels, trainImages, validationSet, dataGen):
 
     # Create network and configure optimizer
-    net = buildNN()
-    optimizer = SGD(lr=0.01)
+    net = buildNetwork()
+
+    # Save network architecture
+    jsonString = net.to_json()
+    fileutils.saveText('./architecture.json', jsonString)
+
+    batchSize = 64
+    optimizer = Adam(lr=0.0001,beta_1=0.5)
     net.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     # Create callback for automatically saving best model based on highest validation accuracy
@@ -63,22 +73,22 @@ def train(trainLabels, trainImages, validationSet):
     # Create callback for automatically saving lastest model so training can be resumed. Saves every 10 epochs
     checkLatestCallback = keras.callbacks.ModelCheckpoint('latest.h5', verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=10)
 
-    # Create callback to automatically lower the learning rate when the accuracy pleateaus
-    autoReduceLRCallback = keras.callbacks.ReduceLROnPlateau(monitor='val_acc', factor=0.1, verbose=1, mode='auto', cooldown=100)
-
     # Create callback for tensorboard
-    tbCallback = keras.callbacks.TensorBoard(log_dir='./Tensorboard', histogram_freq=0, batch_size=250, write_graph=True, write_grads=True,
+    tbCallback = keras.callbacks.TensorBoard(log_dir='./Tensorboard', histogram_freq=0, batch_size=batchSize, write_graph=True, write_grads=True,
                                 write_images=False, embeddings_freq=0, embeddings_layer_names=None,
                                 embeddings_metadata=None, embeddings_data=None)
 
     # Create list of all callbacks
-    callbackList = [ checkBestCallback, checkLatestCallback, autoReduceLRCallback, tbCallback ]
+    callbackList = [ checkBestCallback, checkLatestCallback, tbCallback ]
 
     # Start tensorboard
     startTensorboard()
 
     # Train network and save best model along the way
-    net.fit(trainImages,trainLabels,batch_size=250,epochs=2000,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
+    if dataGen is not None:
+        net.fit_generator(dataGen.flow(trainImages, trainLabels, batch_size=batchSize, shuffle=True), shuffle=True, verbose=1, callbacks=callbackList, validation_data=validationSet, epochs=10000, workers=3, use_multiprocessing=False)
+    else:
+        net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=10000,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
 
 def evaluate(testImages):
     network = load_model('best.h5')
