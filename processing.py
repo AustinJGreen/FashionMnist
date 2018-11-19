@@ -66,9 +66,9 @@ def augmentImages(images, labels):
     augImages = np.concatenate((images, flippedImages, shiftedLeft, shiftedRight, contrasted), axis=0)
 
     #Calculate amount of augmentation done so we can repeat the labels
-    repeats = augImages.shape[0] / images.shape[0]
+    repeats = int(augImages.shape[0] / images.shape[0])
 
-    augLabels = np.repeat(labels,repeats,axis=0)
+    augLabels = np.tile(labels,(repeats, 1))
     return augImages, augLabels
 
 def getDataGen():

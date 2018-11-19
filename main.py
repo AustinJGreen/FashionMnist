@@ -5,7 +5,6 @@ import numpy as np
 import tests
 
 def train():
-
     # Load Training Data
     print("Loading training data...", end="", flush=True)
     _, yTrain, xTrain = fileutils.readTrainDataRaw('./Data/train.csv')
