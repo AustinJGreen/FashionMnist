@@ -21,38 +21,54 @@ def convertLabels(rawLabels):
     oneHotLabels = keras.utils.to_categorical(rawLabels, num_classes=10)
     return oneHotLabels
 
-def shift(arr, num, fill_value=np.nan):
-    result = np.empty_like(arr)
+def shiftHorizontal(arr, num):
+    result = np.zeros(arr.shape)
     if num > 0:
-        result[num] = fill_value
-        result[num:] = arr[:-num]
+        result[:,num:] = arr[:,:-num]
     elif num < 0:
-        result[num:] = fill_value
-        result[:num] = arr[-num:]
+        result[:,:num] = arr[:,-num:]
     else:
         result = arr
     return result
 
-def addContrast(arr, minval, maxval):
-    mask = np.putmask(arr, arr >= 0, 1)
+def shiftVertical(arr, num):
+    result = np.zeros(arr.shape)
+    if num > 0:
+        result[:,:,num:] = arr[:,:,:-num]
+    elif num < 0:
+        result[:,:,:num] = arr[:,:,-num:]
+    else:
+        result = arr
+    return result
+
+def addContrast(arr, min, max):
+    result = np.ceil(arr) - 1
+    mask = ma.masked_array(arr, mask = result, fill_value=0)
+    randArray = min + (np.random.rand(arr.shape[1], arr.shape[2], arr.shape[3]) * (max - min))
+    result = mask + randArray
+    resultData = ma.getdata(result)
+    clipped = np.clip(resultData, 0, 1)
+    return clipped
 
 def augmentImages(images, labels):
 
     # Flip images
     flippedImages = np.fliplr(images)
 
-    # Concatenate to images
-    augImages = np.concatenate((images, flippedImages), axis=0)
+    # Shift every image left,right,up,down, fill with black (0)
+    shiftedRight = shiftHorizontal(images, 2)
+    shiftedLeft = shiftHorizontal(images, -2)
 
-    # Shift every image left or right, fill with black (0)
-    shiftedRight = shift(augImages, 2, cval=0)
-    shiftedLeft = shift(augImages, -2, cval=0)
+    # Add or subtract contrast from all the images
+    contrasted = addContrast(images, 0.02, 0.02)
 
     # Add shifted images
-    augImages = np.concatenate((augImages, shiftedLeft, shiftedRight), axis=0)
+    augImages = np.concatenate((images, flippedImages, shiftedLeft, shiftedRight, contrasted), axis=0)
 
-    # Add labels
-    augLabels = np.concatenate((labels, labels, labels, labels), axis=0)
+    #Calculate amount of augmentation done so we can repeat the labels
+    repeats = augImages.shape[0] / images.shape[0]
+
+    augLabels = np.repeat(labels,repeats,axis=0)
     return augImages, augLabels
 
 def getDataGen():

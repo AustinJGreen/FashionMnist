@@ -1,8 +1,11 @@
 import trainer
 import fileutils
 import processing
+import numpy as np
+import tests
 
 def train():
+
     # Load Training Data
     print("Loading training data...", end="", flush=True)
     _, yTrain, xTrain = fileutils.readTrainDataRaw('./Data/train.csv')
@@ -36,8 +39,10 @@ def train():
     augTrainImages, augTrainLabels = processing.shuffle(augTrainImages, augTrainLabels)
     print("done.")
 
-    dataGen = processing.getDataGen()
-    trainer.train(augTrainLabels, augTrainImages, validationSet, dataGen)
+    print("Aug images = %s" % augTrainImages.shape[0])
+    print("Aug labels = %s" % augTrainLabels.shape[0])
+
+    trainer.train(augTrainLabels, augTrainImages, validationSet)
 
 def eval():
 

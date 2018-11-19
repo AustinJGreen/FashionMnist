@@ -5,6 +5,8 @@ Tensorboard/
 
 # Data files
 *.csv
+*.json
+*.yml
 
 # Images
 *.png

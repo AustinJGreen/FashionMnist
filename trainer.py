@@ -16,15 +16,15 @@ def buildNetwork():
     #biasRegularizer = keras.regularizers.l2(0.001)
 
     net = Sequential()
-    net.add(Conv2D(128, kernel_size=9, input_shape=(28, 28, 1)))
-    net.add(LeakyReLU(alpha=0.2))
+    net.add(Conv2D(64, kernel_size=7, input_shape=(28, 28, 1)))
     net.add(BatchNormalization(momentum=0.8))
+    net.add(LeakyReLU(alpha=0.2))
     net.add(AveragePooling2D(pool_size=(2, 2)))
     net.add(SpatialDropout2D(0.5))
 
-    net.add(Conv2D(64, kernel_size=5))
-    net.add(LeakyReLU(alpha=0.2))
+    net.add(Conv2D(32, kernel_size=3))
     net.add(BatchNormalization(momentum=0.8))
+    net.add(LeakyReLU(alpha=0.2))
     net.add(AveragePooling2D(pool_size=(2, 2)))
     net.add(SpatialDropout2D(0.5))
 
@@ -54,7 +54,7 @@ def startTensorboard():
     logDir = '%s\\Tensorboard' % currentPath
     Popen(['tensorboard', '--logdir=%s' % logDir], shell=True)
 
-def train(trainLabels, trainImages, validationSet, dataGen):
+def train(trainLabels, trainImages, validationSet):
 
     # Create network and configure optimizer
     net = buildNetwork()
@@ -85,10 +85,7 @@ def train(trainLabels, trainImages, validationSet, dataGen):
     startTensorboard()
 
     # Train network and save best model along the way
-    if dataGen is not None:
-        net.fit_generator(dataGen.flow(trainImages, trainLabels, batch_size=batchSize, shuffle=True), shuffle=True, verbose=1, callbacks=callbackList, validation_data=validationSet, epochs=10000, workers=3, use_multiprocessing=False)
-    else:
-        net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=10000,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
+    net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=10000,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
 
 def evaluate(testImages):
     network = load_model('best.h5')
