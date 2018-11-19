@@ -38,9 +38,6 @@ def train():
     augTrainImages, augTrainLabels = processing.shuffle(augTrainImages, augTrainLabels)
     print("done.")
 
-    print("Aug images = %s" % augTrainImages.shape[0])
-    print("Aug labels = %s" % augTrainLabels.shape[0])
-
     trainer.train(augTrainLabels, augTrainImages, validationSet)
 
 def eval():

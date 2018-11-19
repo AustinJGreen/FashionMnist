@@ -1,37 +1,36 @@
 from keras.models import Sequential
-from keras.layers import InputLayer, AveragePooling2D, Conv2D, LeakyReLU, BatchNormalization, Dense, Softmax, Flatten, SpatialDropout2D
+from keras.layers import InputLayer, AveragePooling2D, Conv2D, LeakyReLU, BatchNormalization, Dense, Softmax, Flatten, SpatialDropout2D, MaxPooling2D
 from keras.optimizers import SGD, Adam
 from keras.models import load_model
 import psutil
 import os
 from subprocess import Popen
 import keras
-import customlayers
 import fileutils
 
 def buildNetwork():
 
     #kernelInit = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
     #kernelRegulizer = keras.regularizers.l2(0.001)
-    #biasRegularizer = keras.regularizers.l2(0.001)
+    br = keras.regularizers.l2(0.001)
 
     net = Sequential()
-    net.add(Conv2D(64, kernel_size=7, input_shape=(28, 28, 1)))
-    net.add(BatchNormalization(momentum=0.8))
+    net.add(Conv2D(64, kernel_size=7, input_shape=(28, 28, 1), bias_regularizer=br))
+    #net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
-    net.add(AveragePooling2D(pool_size=(2, 2)))
-    net.add(SpatialDropout2D(0.5))
+    net.add(MaxPooling2D(pool_size=(2, 2)))
+    net.add(SpatialDropout2D(0.4))
 
-    net.add(Conv2D(32, kernel_size=3))
-    net.add(BatchNormalization(momentum=0.8))
+    net.add(Conv2D(32, kernel_size=5, bias_regularizer=br))
+    #net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
-    net.add(AveragePooling2D(pool_size=(2, 2)))
-    net.add(SpatialDropout2D(0.5))
+    net.add(MaxPooling2D(pool_size=(2, 2)))
+    net.add(SpatialDropout2D(0.4))
 
     net.add(Flatten())
-    net.add(Dense(128, activation=None))
+    net.add(Dense(128, activation=None, bias_regularizer=br))
     net.add(LeakyReLU(alpha=0.2))
-    net.add(BatchNormalization(momentum=0.8))
+    #net.add(BatchNormalization(momentum=0.8))
     net.add(Dense(10, activation='softmax'))
 
     return net
@@ -63,8 +62,8 @@ def train(trainLabels, trainImages, validationSet):
     jsonString = net.to_json()
     fileutils.saveText('./architecture.json', jsonString)
 
-    batchSize = 64
-    optimizer = Adam(lr=0.0001,beta_1=0.5)
+    batchSize = 100
+    optimizer = Adam(lr=0.001,beta_1=0.5)
     net.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     # Create callback for automatically saving best model based on highest validation accuracy
