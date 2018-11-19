@@ -15,20 +15,20 @@ def buildNetwork():
     br = keras.regularizers.l2(0.001)
 
     net = Sequential()
-    net.add(Conv2D(64, kernel_size=7, input_shape=(28, 28, 1), bias_regularizer=br))
+    net.add(Conv2D(64, kernel_size=5, input_shape=(28, 28, 1)))
     #net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
     net.add(MaxPooling2D(pool_size=(2, 2)))
     net.add(SpatialDropout2D(0.4))
 
-    net.add(Conv2D(32, kernel_size=5, bias_regularizer=br))
+    net.add(Conv2D(32, kernel_size=3))
     #net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
     net.add(MaxPooling2D(pool_size=(2, 2)))
     net.add(SpatialDropout2D(0.4))
 
     net.add(Flatten())
-    net.add(Dense(128, activation=None, bias_regularizer=br))
+    net.add(Dense(128, activation=None))
     net.add(LeakyReLU(alpha=0.2))
     #net.add(BatchNormalization(momentum=0.8))
     net.add(Dense(10, activation='softmax'))
