@@ -29,10 +29,12 @@ def train():
 
 
     print("Generating validation set...", end="", flush=True)
-    validationSetSize = int(0.15 * trainImages.shape[0])
-    validationSet = (trainImages[-validationSetSize:], trainLabels[-validationSetSize:])
-    trainImages = trainImages[:-validationSetSize]
-    trainLabels = trainLabels[:-validationSetSize]
+    validationSetSize = int(0 * trainImages.shape[0])
+    validationSet = None
+    if validationSetSize > 0:
+        validationSet = (trainImages[-validationSetSize:], trainLabels[-validationSetSize:])
+        trainImages = trainImages[:-validationSetSize]
+        trainLabels = trainLabels[:-validationSetSize]
     print("done.")
 
     # Run Test
@@ -47,7 +49,7 @@ def train():
 
     trainer.train(augTrainLabels, augTrainImages, validationSet)
 
-def eval():
+def eval(name):
 
     # Load Test Data
     print("Loading test data...", end="", flush=True)
@@ -61,7 +63,7 @@ def eval():
 
     # Load best
     print("Evaluating test set...")
-    testLabels = trainer.evaluate(testImages)
+    testLabels = trainer.evaluate(testImages, name)
 
     print("Generating classification CSV...", end="", flush=True)
     fileutils.generateClassificationFile(testIds,testLabels)
@@ -75,5 +77,5 @@ def checkPaths():
 if __name__ == "__main__":
     checkPaths()
 
-    #eval()
-    train()
+    eval('latest.h5')
+    #train()
