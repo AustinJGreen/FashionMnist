@@ -2,14 +2,15 @@ import trainer
 import fileutils
 import processing
 import numpy as np
+import os
 import tests
 
-def train():
-    # TODO: Auto submit csv file to kaggle with api
-    # TODO: Separate runs in folder directories and show all on tensorboard
+# TODO: Auto submit csv file to kaggle with api
+# TODO: Separate runs in folder directories and show all on tensorboard
 
+def loadTrainingData():
     # Load Training Data
-    print("Loading training data...", end="", flush=True)
+    print("Reading training data...", end="", flush=True)
     _, yTrain, xTrain = fileutils.readTrainDataRaw('./Data/train.csv')
     print("done.")
 
@@ -24,9 +25,8 @@ def train():
     trainImages, trainLabels = processing.shuffle(trainImages, trainLabels)
     print("done.")
 
-    # Test distribution
+    # TODO: Test distribution
     labelSums = np.sum(trainLabels, axis=0)
-
 
     print("Generating validation set...", end="", flush=True)
     validationSetSize = int(0 * trainImages.shape[0])
@@ -47,9 +47,34 @@ def train():
     augTrainImages, augTrainLabels = processing.shuffle(augTrainImages, augTrainLabels)
     print("done.")
 
-    trainer.train(augTrainLabels, augTrainImages, validationSet)
+    return augTrainImages, augTrainLabels, validationSet
 
-def eval(name):
+def trainNew(runName):
+
+    # Get name for run
+    runPath = './Runs/%s' % runName
+    assert not os.path.exists(runPath), "Run name already exists, pick a new run name."
+    os.makedirs(runPath)
+
+    trainImages, trainLabels, validationSet = loadTrainingData()
+    trainer.trainNew(runName, trainLabels, trainImages, validationSet)
+
+def resume(runName, modelName):
+
+    # Get model path
+    curDir = os.getcwd()
+    modelPath = "%s\\Runs\\%s\\Models\\%s.h5" % (curDir, runName, modelName)
+    assert os.path.exists(modelPath), "Model does not exist."
+
+    trainImages, trainLabels, validationSet = loadTrainingData()
+    trainer.trainExisting(runName, modelPath, trainLabels, trainImages, validationSet)
+
+def eval(runName, modelName):
+
+    # Get model path
+    curDir = os.getcwd()
+    modelPath = "%s\\Runs\\%s\\Models\\%s.h5" % (curDir, runName, modelName)
+    assert os.path.exists(modelPath), "Model does not exist."
 
     # Load Test Data
     print("Loading test data...", end="", flush=True)
@@ -63,19 +88,20 @@ def eval(name):
 
     # Load best
     print("Evaluating test set...")
-    testLabels = trainer.evaluate(testImages, name)
+    testLabels = trainer.evaluate(testImages, modelPath)
 
     print("Generating classification CSV...", end="", flush=True)
-    fileutils.generateClassificationFile(testIds,testLabels)
+    fileutils.generateClassificationFile(testIds,testLabels,runName)
     print("done.")
 
 def checkPaths():
-    fileutils.checkPath("Data")
-    fileutils.checkPath("Images")
-    fileutils.checkPath("Tensorboard")
+    fileutils.checkPath("Data") # Folder for data
+    fileutils.checkPath("Runs") # Folder for training runs
+    fileutils.checkPath("Tensorboard") # Folder containing all tensorboard runs
 
 if __name__ == "__main__":
     checkPaths()
 
-    eval('latest.h5')
-    #train()
+    resume('first', 'latest')
+    #eval('first', 'latest')
+    #trainNew(runName='second')

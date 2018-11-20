@@ -1,7 +1,6 @@
 import PIL
 import numpy as np
 import os
-import multiprocessing
 
 def checkPath(name):
     baseDir = os.getcwd()
@@ -50,23 +49,20 @@ def saveImage(filename, image):
         img = PIL.Image.new('RGB', (width, height), color=(0, 0, 0))
         for x in range(width):
             for y in range(height):
-                grayScaleValue = int(image[x, y, 0] * 255)
-                r = grayScaleValue
-                g = grayScaleValue
-                b = grayScaleValue
-                img.putpixel((x, y), (r, g, b))
+                grayValue = int(image[x, y, 0] * 255)
+                img.putpixel((x, y), (grayValue, grayValue, grayValue))
         img.save(filename)
         img.close()
     except Exception as e:
         print("Failed to save grayscale image to %s" % filename)
         print(e)
 
-def generateClassificationFile(testIds,testLabels):
-    f = open('./prediction.csv', 'w')
-    f.write("Id,label\n")
-    for i in range(len(testLabels)):
-        f.write(format("%s,%s\n" % (testIds[i], testLabels[i])))
-    f.close()
+def generateClassificationFile(testIds, testLabels, runName):
+    curDir = os.getcwd()
+    with open('%s\\Runs\\%s\\prediction.csv' % (curDir, runName), 'w') as f:
+        f.write("Id,label\n")
+        for i in range(len(testLabels)):
+            f.write(format("%s,%s\n" % (testIds[i], testLabels[i])))
 
 def saveText(filename, text):
     f = open(filename, 'w')

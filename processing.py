@@ -42,10 +42,16 @@ def shiftVertical(arr, num):
     return result
 
 def addContrast(arr, min, max):
-    result = np.ceil(arr) - 1
-    mask = ma.masked_array(arr, mask = result, fill_value=0)
+    result = np.ceil(arr) - 1 # Round up then flip 0 and 1's to set mask to true for all non-zero values
+    mask = ma.masked_array(arr, mask = result, fill_value=0) # Create mask
+
+    # Create random matrix with values between min and max and same shape as arr
     randArray = min + (np.random.rand(arr.shape[1], arr.shape[2], arr.shape[3]) * (max - min))
+
+    # Add random contrasts to masked values
     result = mask + randArray
+
+    # Get result and clip values between 0 and 1 for any overflow from random
     resultData = ma.getdata(result)
     clipped = np.clip(resultData, 0, 1)
     return clipped
