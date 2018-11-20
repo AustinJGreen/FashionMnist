@@ -42,16 +42,10 @@ def shiftVertical(arr, num):
     return result
 
 def addContrast(arr, min, max):
-    result = np.ceil(arr) - 1 # Round up then flip 0 and 1's to set mask to true for all non-zero values
-    mask = ma.masked_array(arr, mask = result, fill_value=0) # Create mask
-
-    # Create random matrix with values between min and max and same shape as arr
+    result = np.ceil(arr) - 1
+    mask = ma.masked_array(arr, mask = result, fill_value=0)
     randArray = min + (np.random.rand(arr.shape[1], arr.shape[2], arr.shape[3]) * (max - min))
-
-    # Add random contrasts to masked values
     result = mask + randArray
-
-    # Get result and clip values between 0 and 1 for any overflow from random
     resultData = ma.getdata(result)
     clipped = np.clip(resultData, 0, 1)
     return clipped
@@ -76,6 +70,16 @@ def augmentImages(images, labels):
 
     augLabels = np.tile(labels,(repeats, 1))
     return augImages, augLabels
+
+def getDataGen():
+    return keras.preprocessing.image.ImageDataGenerator(featurewise_center=False, samplewise_center=False,
+                                                 featurewise_std_normalization=False,
+                                                 samplewise_std_normalization=False, zca_whitening=False,
+                                                 zca_epsilon=1e-06, rotation_range=0, width_shift_range=2.0,
+                                                 height_shift_range=2.0, brightness_range=None, shear_range=0.0,
+                                                 zoom_range=0.0, channel_shift_range=0.0, fill_mode='nearest', cval=0.0,
+                                                 horizontal_flip=False, vertical_flip=False, rescale=None,
+                                                 preprocessing_function=None, data_format=None)
 
 def shuffle(images, labels):
 

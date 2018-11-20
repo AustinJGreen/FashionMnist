@@ -2,14 +2,16 @@
 Data/
 Images/
 Tensorboard/
-Runs/
 
 # Data files
 *.csv
 *.json
 *.yml
-*.yaml
+
+# Images
 *.png
+
+# Model Files
 *.h5
 
 # Pycharm Project
