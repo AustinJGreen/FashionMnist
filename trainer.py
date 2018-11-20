@@ -62,7 +62,7 @@ def train(trainLabels, trainImages, validationSet):
     jsonString = net.to_json()
     fileutils.saveText('./architecture.json', jsonString)
 
-    batchSize = 50
+    batchSize = 32
     optimizer = Adam(lr=0.0001)
     net.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
@@ -78,16 +78,18 @@ def train(trainLabels, trainImages, validationSet):
                                 embeddings_metadata=None, embeddings_data=None)
 
     # Create list of all callbacks
-    callbackList = [ checkBestCallback, checkLatestCallback, tbCallback ]
+    callbackList = [ checkLatestCallback, tbCallback ]
+    if validationSet is not None:
+        callbackList = callbackList.append(checkBestCallback)
 
     # Start tensorboard
     startTensorboard()
 
     # Train network and save best model along the way
-    net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=10000,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
+    net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=150,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
 
-def evaluate(testImages):
-    network = load_model('best.h5')
+def evaluate(testImages, name):
+    network = load_model(name)
 
     onehotPredictions = network.predict(testImages)
 
