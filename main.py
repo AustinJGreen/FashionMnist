@@ -5,6 +5,9 @@ import numpy as np
 import tests
 
 def train():
+    # TODO: Auto submit csv file to kaggle with api
+    # TODO: Separate runs in folder directories and show all on tensorboard
+
     # Load Training Data
     print("Loading training data...", end="", flush=True)
     _, yTrain, xTrain = fileutils.readTrainDataRaw('./Data/train.csv')
@@ -20,6 +23,10 @@ def train():
     print("Shuffling training data...", end="", flush=True)
     trainImages, trainLabels = processing.shuffle(trainImages, trainLabels)
     print("done.")
+
+    # Test distribution
+    labelSums = np.sum(trainLabels, axis=0)
+
 
     print("Generating validation set...", end="", flush=True)
     validationSetSize = int(0.15 * trainImages.shape[0])
