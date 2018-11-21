@@ -70,7 +70,7 @@ def trainNew(runName, trainLabels, trainImages, validationSet):
 
     # Save network architecture
     yamlStr = net.to_yaml()
-    fileutils.saveText('./Runs/%s/architecture.yaml' % runName, yamlStr)
+    fileutils.save_text('./Runs/%s/architecture.yaml' % runName, yamlStr)
 
     # Compile new network with optimizer
     optimizer = Adam(lr=0.0001)

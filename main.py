@@ -11,7 +11,7 @@ import tests
 def loadTrainingData():
     # Load Training Data
     print("Reading training data...", end="", flush=True)
-    _, yTrain, xTrain = fileutils.readTrainDataRaw('./Data/train.csv')
+    _, yTrain, xTrain = fileutils.read_train_data_raw('./Data/train.csv')
     print("done.")
 
     # Normalize
@@ -81,7 +81,7 @@ def eval(runName, modelName):
 
     # Load Test Data
     print("Loading test data...", end="", flush=True)
-    testIds, testImagesRaw = fileutils.readTestData('./Data/test.csv')
+    testIds, testImagesRaw = fileutils.read_test_data('./Data/test.csv')
     print("done.")
 
     # Normalize
@@ -94,13 +94,13 @@ def eval(runName, modelName):
     testLabels = trainer.evaluate(testImages, modelPath)
 
     print("Generating classification CSV...", end="", flush=True)
-    fileutils.generateClassificationFile(testIds,testLabels,runName)
+    fileutils.generate_classification(testIds, testLabels, runName)
     print("done.")
 
 def checkPaths():
-    fileutils.checkPath("Data") # Folder for data
-    fileutils.checkPath("Runs") # Folder for training runs
-    fileutils.checkPath("Tensorboard") # Folder containing all tensorboard runs
+    fileutils.check_path("Data") # Folder for data
+    fileutils.check_path("Runs") # Folder for training runs
+    fileutils.check_path("Tensorboard") # Folder containing all tensorboard runs
 
 if __name__ == "__main__":
     checkPaths()

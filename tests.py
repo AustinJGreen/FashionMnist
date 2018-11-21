@@ -7,4 +7,4 @@ def saveImages(directory, imageSet, count):
     for i in range(count):
         randomIndex = np.random.randint(0, imageSetCount)
         image = imageSet[randomIndex]
-        fileutils.saveImage(format("%s/image%s.png" % (directory, randomIndex)), image)
+        fileutils.save_image(format("%s/image%s.png" % (directory, randomIndex)), image)
