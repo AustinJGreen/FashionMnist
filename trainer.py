@@ -72,46 +72,34 @@ def trainNew(runName, trainLabels, trainImages, validationSet):
     yamlStr = net.to_yaml()
     fileutils.saveText('./Runs/%s/architecture.yaml' % runName, yamlStr)
 
-    # Set batch size
-    batchSize = 32
-
     # Compile new network with optimizer
     optimizer = Adam(lr=0.0001)
     net.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-    # Create callback for automatically saving best model based on highest validation accuracy
-    checkBestCallback = keras.callbacks.ModelCheckpoint('%s/best.h5' % modelsDir, monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
-
-    # Create callback for automatically saving lastest model so training can be resumed. Saves every epoch
-    checkLatestCallback = keras.callbacks.ModelCheckpoint('%s/latest.h5' % modelsDir, verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
-
-    # Create callback for tensorboard
-    tbCallback = keras.callbacks.TensorBoard(log_dir=tbDir, batch_size=batchSize, write_graph=False, write_grads=True)
-
-    # Create list of all callbacks
-    callbackList = [ checkLatestCallback, tbCallback ]
-    if validationSet is not None:
-        callbackList = callbackList.append(checkBestCallback)
-
-    # Start tensorboard
-    startTensorboard()
-
-    # Train network and save best model along the way
-    net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=150,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
+    # Train model
+    trainModel(runName, net, trainLabels, trainImages, validationSet)
 
 def trainExisting(runName, modelPath, trainLabels, trainImages, validationSet):
 
-    # Get tensoboard directory
-    tbDir = "./Tensorboard/%s" % runName
-
     # Delete old data because epochs are being reset to 0
     deleteTensorboardData(runName)
+
+    # Load network from file
+    net = load_model(modelPath)
+
+    # Train model
+    trainModel(runName, net, trainLabels, trainImages, validationSet)
+
+def trainModel(runName, net, trainLabels, trainImages, validationSet):
+
+    # Get tensoboard directory
+    tbDir = "./Tensorboard/%s" % runName
 
     # Get Models directory
     modelsDir = './Runs/%s/Models' % runName
 
     # Set batch size
-    batchSize = 32
+    batchSize = 16
 
     # Create callback for automatically saving best model based on highest validation accuracy
     checkBestCallback = keras.callbacks.ModelCheckpoint('%s/best.h5' % modelsDir, monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
@@ -129,9 +117,6 @@ def trainExisting(runName, modelPath, trainLabels, trainImages, validationSet):
 
     # Start tensorboard
     startTensorboard()
-
-    # Load network from file
-    net = load_model(modelPath)
 
     # Train network and save best model along the way
     net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=150,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)

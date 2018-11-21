@@ -66,7 +66,7 @@ def augmentImages(images, labels):
     shiftedLeft = shiftHorizontal(images, -2)
 
     # Add or subtract contrast from all the images
-    contrasted = addContrast(images, -0.03, 0.03)
+    contrasted = addContrast(images, -0.02, 0.02)
 
     # Add shifted images
     augImages = np.concatenate((images, flippedImages, shiftedLeft, shiftedRight, contrasted), axis=0)

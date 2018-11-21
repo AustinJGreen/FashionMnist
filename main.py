@@ -25,16 +25,19 @@ def loadTrainingData():
     trainImages, trainLabels = processing.shuffle(trainImages, trainLabels)
     print("done.")
 
-    # TODO: Test distribution
-    labelSums = np.sum(trainLabels, axis=0)
-
     print("Generating validation set...", end="", flush=True)
     validationSetSize = int(0 * trainImages.shape[0])
     validationSet = None
     if validationSetSize > 0:
         validationSet = (trainImages[-validationSetSize:], trainLabels[-validationSetSize:])
+
+        # TODO: Test distribution
+        maxSums = np.sum(trainLabels, axis=0)
+
         trainImages = trainImages[:-validationSetSize]
         trainLabels = trainLabels[:-validationSetSize]
+
+        labelSums = np.sum(trainLabels, axis=0)
     print("done.")
 
     # Run Test
@@ -102,6 +105,6 @@ def checkPaths():
 if __name__ == "__main__":
     checkPaths()
 
-    resume('first', 'latest')
-    #eval('first', 'latest')
-    #trainNew(runName='second')
+    #resume('first', 'latest')
+    #eval('ZeroValOldContrast64Batch', 'latest')
+    trainNew(runName='ZeroValGood16Batch')
