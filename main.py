@@ -105,9 +105,9 @@ def evaluate(run_name, model_name):
 
 
 def check_paths():
-    fileutils.check_path("Data") # Folder for data
-    fileutils.check_path("Runs") # Folder for training runs
-    fileutils.check_path("Tensorboard") # Folder containing all tensorboard runs
+    fileutils.check_path("Data")  # Folder for data
+    fileutils.check_path("Runs")  # Folder for training runs
+    fileutils.check_path("Tensorboard")  # Folder containing all tensorboard runs
 
 
 if __name__ == "__main__":

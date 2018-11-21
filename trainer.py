@@ -12,8 +12,8 @@ import fileutils
 
 
 def build_network():
-    # kernelInit = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
-    # kernelRegulizer = keras.regularizers.l2(0.001)
+    # kernel_init = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
+    # kernel_reg = keras.regularizers.l2(0.001)
     # br = keras.regularizers.l2(0.001)
 
     net = Sequential()
@@ -61,7 +61,7 @@ def delete_tensorboard_data(run_name):
 
 
 def train_new(run_name, train_labels, train_images, validation_set):
-    # Create run in tensoboard directory
+    # Create run in tensorboard directory
     tb_dir = "./Tensorboard/%s" % run_name
     os.makedirs(tb_dir)
 
@@ -96,7 +96,7 @@ def train_existing(run_name, model_path, train_labels, train_images, validation_
 
 
 def train_model(run_name, net, train_labels, train_images, validation_set):
-    # Get tensoboard directory
+    # Get tensorboard directory
     tb_dir = "./Tensorboard/%s" % run_name
 
     # Get Models directory
@@ -153,6 +153,6 @@ def evaluate(test_images, model_path):
         for j in range(onehot_predictions.shape[1]):
             if onehot_predictions[i][j] > highest_value:
                 highest_value = onehot_predictions[i][j]
-                highest_index = j;
+                highest_index = j
         test_labels[i] = highest_index
     return test_labels
