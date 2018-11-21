@@ -46,6 +46,7 @@ def stop_tensorboard():
             p.wait()  # Wait for it to terminate
             return
 
+
 def start_tensorboard():
     # Check if tensorboard is already running
     for p in psutil.process_iter():
