@@ -6,9 +6,7 @@ import fileutils
 import processing
 import trainer
 
-
 # TODO: Auto submit csv file to kaggle with api
-# TODO: Separate runs in folder directories and show all on tensorboard
 
 
 def load_training_data():
@@ -113,4 +111,5 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    train_new(run_name='ZeroValGood16Batch')
+    evaluate('ZeroValGood16Batch', 'latest')
+    #train_new(run_name='ZeroValGood16Batch')
