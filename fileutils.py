@@ -99,7 +99,7 @@ def generate_classification(test_ids, test_labels, run_name):
     :param run_name: The test IDs corresponding to each label
     """
 
-    assert test_ids.shape[0] == test_labels.shape[0], "Test IDs and Test Labels must have the same length"
+    assert len(test_ids) == len(test_labels), "Test IDs and Test Labels must have the same length"
 
     cur_dir = os.getcwd()
     with open('%s\\Runs\\%s\\prediction.csv' % (cur_dir, run_name), 'w') as f:
