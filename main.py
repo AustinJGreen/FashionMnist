@@ -111,5 +111,6 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    evaluate('ZeroValGood16Batch', 'latest')
+    resume('ZeroValGood16Batch', 'latest')
+    #evaluate('ZeroValGood16Batch', 'latest')
     #train_new(run_name='ZeroValGood16Batch')
