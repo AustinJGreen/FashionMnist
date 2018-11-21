@@ -1,8 +1,10 @@
-import trainer
+import os
+
+import numpy as np
+
 import fileutils
 import processing
-import numpy as np
-import os
+import trainer
 
 
 # TODO: Auto submit csv file to kaggle with api
@@ -62,7 +64,7 @@ def train_new(runName):
     os.makedirs(run_path)
 
     train_images, train_labels, validation_set = load_training_data()
-    trainer.trainNew(runName, train_labels, train_images, validation_set)
+    trainer.train_new(runName, train_labels, train_images, validation_set)
 
 
 def resume(runName, modelName):
@@ -73,7 +75,7 @@ def resume(runName, modelName):
     assert os.path.exists(model_path), "Model does not exist."
 
     train_images, train_labels, validation_set = load_training_data()
-    trainer.trainExisting(runName, model_path, train_labels, train_images, validation_set)
+    trainer.train_existing(runName, model_path, train_labels, train_images, validation_set)
 
 
 def evaluate(run_name, model_name):

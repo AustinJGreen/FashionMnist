@@ -1,18 +1,20 @@
-from keras.models import Sequential
-from keras.layers import Conv2D, LeakyReLU, BatchNormalization, Dense, Softmax, Flatten, SpatialDropout2D, MaxPooling2D
-from keras.optimizers import SGD, Adam
-from keras.models import load_model
-import psutil
 import os
 from subprocess import Popen
+
 import keras
+import psutil
+from keras.layers import Conv2D, LeakyReLU, BatchNormalization, Dense, Flatten, SpatialDropout2D, MaxPooling2D
+from keras.models import Sequential
+from keras.models import load_model
+from keras.optimizers import Adam
+
 import fileutils
 
-def buildNetwork():
 
-    #kernelInit = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
-    #kernelRegulizer = keras.regularizers.l2(0.001)
-    #br = keras.regularizers.l2(0.001)
+def build_network():
+    # kernelInit = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
+    # kernelRegulizer = keras.regularizers.l2(0.001)
+    # br = keras.regularizers.l2(0.001)
 
     net = Sequential()
     net.add(Conv2D(64, kernel_size=5, input_shape=(28, 28, 1)))
@@ -35,108 +37,114 @@ def buildNetwork():
 
     return net
 
-def startTensorboard():
+
+def start_tensorboard():
     # Check if tensorboard is already running
     for p in psutil.process_iter():
         if p.name() == "tensorboard.exe":
             return
 
     # Start new tensorboard instance
-    currentPath = os.getcwd()
-    logDir = '%s\\Tensorboard' % currentPath
-    Popen(['tensorboard', '--logdir=%s' % logDir], shell=True)
+    current_path = os.getcwd()
+    log_dir = '%s\\Tensorboard' % current_path
+    Popen(['tensorboard', '--logdir=%s' % log_dir], shell=True)
 
-def deleteTensorboardData(runName):
-    currentPath = os.getcwd()
-    baseDir = '%s\\Tensorboard\\%s\\' % (currentPath, runName)
-    paths = os.listdir(baseDir)
+
+def delete_tensorboard_data(run_name):
+    current_path = os.getcwd()
+    base_dir = '%s\\Tensorboard\\%s\\' % (current_path, run_name)
+    paths = os.listdir(base_dir)
     for path in paths:
-        fullpath = '%s\\%s' % (baseDir, path)
-        if os.path.isfile(fullpath):
-            os.remove(fullpath)
+        full_path = '%s\\%s' % (base_dir, path)
+        if os.path.isfile(full_path):
+            os.remove(full_path)
 
-def trainNew(runName, trainLabels, trainImages, validationSet):
 
+def train_new(run_name, train_labels, train_images, validation_set):
     # Create run in tensoboard directory
-    tbDir = "./Tensorboard/%s" % runName
-    os.makedirs(tbDir)
+    tb_dir = "./Tensorboard/%s" % run_name
+    os.makedirs(tb_dir)
 
     # Create Models directory
-    modelsDir = './Runs/%s/Models' % runName
-    os.makedirs(modelsDir)
+    models_dir = './Runs/%s/Models' % run_name
+    os.makedirs(models_dir)
 
     # Create network and configure optimizer
-    net = buildNetwork()
+    net = build_network()
 
     # Save network architecture
-    yamlStr = net.to_yaml()
-    fileutils.save_text('./Runs/%s/architecture.yaml' % runName, yamlStr)
+    yaml_str = net.to_yaml()
+    fileutils.save_text('./Runs/%s/architecture.yaml' % run_name, yaml_str)
 
     # Compile new network with optimizer
     optimizer = Adam(lr=0.0001)
     net.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     # Train model
-    trainModel(runName, net, trainLabels, trainImages, validationSet)
+    train_model(run_name, net, train_labels, train_images, validation_set)
 
-def trainExisting(runName, modelPath, trainLabels, trainImages, validationSet):
 
+def train_existing(run_name, model_path, train_labels, train_images, validation_set):
     # Delete old data because epochs are being reset to 0
-    deleteTensorboardData(runName)
+    delete_tensorboard_data(run_name)
 
     # Load network from file
-    net = load_model(modelPath)
+    net = load_model(model_path)
 
     # Train model
-    trainModel(runName, net, trainLabels, trainImages, validationSet)
+    train_model(run_name, net, train_labels, train_images, validation_set)
 
-def trainModel(runName, net, trainLabels, trainImages, validationSet):
 
+def train_model(run_name, net, train_labels, train_images, validation_set):
     # Get tensoboard directory
-    tbDir = "./Tensorboard/%s" % runName
+    tb_dir = "./Tensorboard/%s" % run_name
 
     # Get Models directory
-    modelsDir = './Runs/%s/Models' % runName
+    models_dir = './Runs/%s/Models' % run_name
 
     # Set batch size
-    batchSize = 16
+    batch_size = 16
 
     # Create callback for automatically saving best model based on highest validation accuracy
-    checkBestCallback = keras.callbacks.ModelCheckpoint('%s/best.h5' % modelsDir, monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=False, mode='auto', period=1)
+    check_best_callback = keras.callbacks.ModelCheckpoint('%s/best.h5' % models_dir, monitor='val_acc', verbose=0,
+                                                        save_best_only=True, save_weights_only=False, mode='auto',
+                                                        period=1)
 
     # Create callback for automatically saving lastest model so training can be resumed. Saves every epoch
-    checkLatestCallback = keras.callbacks.ModelCheckpoint('%s/latest.h5' % modelsDir, verbose=0, save_best_only=False, save_weights_only=False, mode='auto', period=1)
+    check_latest_callback = keras.callbacks.ModelCheckpoint('%s/latest.h5' % models_dir, verbose=0, save_best_only=False,
+                                                          save_weights_only=False, mode='auto', period=1)
 
     # Create callback for tensorboard
-    tbCallback = keras.callbacks.TensorBoard(log_dir=tbDir, batch_size=batchSize, write_graph=False, write_grads=True)
+    tb_callback = keras.callbacks.TensorBoard(log_dir=tb_dir, batch_size=batch_size, write_graph=False, write_grads=True)
 
     # Create list of all callbacks
-    callbackList = [ checkLatestCallback, tbCallback ]
-    if validationSet is not None:
-        callbackList = callbackList.append(checkBestCallback)
+    callback_list = [check_latest_callback, tb_callback]
+    if validation_set is not None:
+        callback_list = callback_list.append(check_best_callback)
 
     # Start tensorboard
-    startTensorboard()
+    start_tensorboard()
 
     # Train network and save best model along the way
-    net.fit(trainImages,trainLabels,batch_size=batchSize,epochs=150,verbose=2,shuffle=True,validation_data=validationSet,callbacks=callbackList)
+    net.fit(train_images, train_labels, batch_size=batch_size, epochs=150, verbose=2, shuffle=True,
+            validation_data=validation_set, callbacks=callback_list)
 
-def evaluate(testImages, modelPath):
 
-    # Load network fron h5 format
-    net = load_model(modelPath)
+def evaluate(test_images, model_path):
+    # Load network from h5 format
+    net = load_model(model_path)
 
     # Feed test images into network and get predictions
-    onehotPredictions = net.predict(testImages)
+    onehot_predictions = net.predict(test_images)
 
     # Convert labels back from one-hot to single integer
-    testLabels = [0] * onehotPredictions.shape[0]
-    for i in range(onehotPredictions.shape[0]):
-        highestValue = -1
-        highestIndex = -1
-        for j in range(onehotPredictions.shape[1]):
-            if (onehotPredictions[i][j] > highestValue):
-                highestValue = onehotPredictions[i][j]
-                highestIndex = j;
-        testLabels[i] = highestIndex
-    return testLabels
+    test_labels = [0] * onehot_predictions.shape[0]
+    for i in range(onehot_predictions.shape[0]):
+        highest_value = -1
+        highest_index = -1
+        for j in range(onehot_predictions.shape[1]):
+            if onehot_predictions[i][j] > highest_value:
+                highest_value = onehot_predictions[i][j]
+                highest_index = j;
+        test_labels[i] = highest_index
+    return test_labels
