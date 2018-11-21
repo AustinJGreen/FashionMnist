@@ -38,6 +38,14 @@ def build_network():
     return net
 
 
+def stop_tensorboard():
+    # Check if tensorboard is already running and if it is, kill it
+    for p in psutil.process_iter():
+        if p.name() == "tensorboard.exe":
+            p.kill()  # Kill tensorboard
+            p.wait()  # Wait for it to terminate
+            return
+
 def start_tensorboard():
     # Check if tensorboard is already running
     for p in psutil.process_iter():
@@ -85,6 +93,10 @@ def train_new(run_name, train_labels, train_images, validation_set):
 
 
 def train_existing(run_name, model_path, train_labels, train_images, validation_set):
+
+    # Make sure tensorboard is not running, so we can delete old data
+    stop_tensorboard()
+
     # Delete old data because epochs are being reset to 0
     delete_tensorboard_data(run_name)
 
