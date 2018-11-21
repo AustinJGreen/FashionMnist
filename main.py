@@ -19,7 +19,7 @@ def load_training_data():
 
     # Normalize
     print("Normalizing data...", end="", flush=True)
-    train_images = processing.normalizeImages(x_train)
+    train_images = processing.normalize_images(x_train)
     train_labels = processing.convertLabels(y_train)
     print("done.")
 
@@ -45,7 +45,7 @@ def load_training_data():
 
     # Run Test
     print("Generating augmented training set...", end="", flush=True)
-    aug_train_images, aug_train_labels = processing.augmentImages(train_images, train_labels)
+    aug_train_images, aug_train_labels = processing.augment_images(train_images, train_labels)
     print("done.")
 
     # Shuffle data very well
@@ -56,26 +56,26 @@ def load_training_data():
     return aug_train_images, aug_train_labels, validation_set
 
 
-def train_new(runName):
+def train_new(run_name):
 
     # Get name for run
-    run_path = './Runs/%s' % runName
+    run_path = './Runs/%s' % run_name
     assert not os.path.exists(run_path), "Run name already exists, pick a new run name."
     os.makedirs(run_path)
 
     train_images, train_labels, validation_set = load_training_data()
-    trainer.train_new(runName, train_labels, train_images, validation_set)
+    trainer.train_new(run_name, train_labels, train_images, validation_set)
 
 
-def resume(runName, modelName):
+def resume(run_name, model_name):
 
     # Get model path
     cur_dir = os.getcwd()
-    model_path = "%s\\Runs\\%s\\Models\\%s.h5" % (cur_dir, runName, modelName)
+    model_path = "%s\\Runs\\%s\\Models\\%s.h5" % (cur_dir, run_name, model_name)
     assert os.path.exists(model_path), "Model does not exist."
 
     train_images, train_labels, validation_set = load_training_data()
-    trainer.train_existing(runName, model_path, train_labels, train_images, validation_set)
+    trainer.train_existing(run_name, model_path, train_labels, train_images, validation_set)
 
 
 def evaluate(run_name, model_name):
@@ -92,7 +92,7 @@ def evaluate(run_name, model_name):
 
     # Normalize
     print("Normalizing data...", end="", flush=True)
-    test_images = processing.normalizeImages(test_images_raw)
+    test_images = processing.normalize_images(test_images_raw)
     print("done.")
 
     # Load best
@@ -113,6 +113,4 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    #resume('first', 'latest')
-    #eval('ZeroValOldContrast64Batch', 'latest')
-    train_new(runName='ZeroValGood16Batch')
+    train_new(run_name='ZeroValGood16Batch')

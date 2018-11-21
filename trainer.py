@@ -105,22 +105,30 @@ def train_model(run_name, net, train_labels, train_images, validation_set):
     # Set batch size
     batch_size = 16
 
+    # Create callback for automatically saving best model based on highest regular accuracy
+    check_best_acc = keras.callbacks.ModelCheckpoint('%s/best_acc.h5' % models_dir, monitor='acc', verbose=0,
+                                                     save_best_only=True, save_weights_only=False, mode='auto',
+                                                     period=1)
+
     # Create callback for automatically saving best model based on highest validation accuracy
-    check_best_callback = keras.callbacks.ModelCheckpoint('%s/best.h5' % models_dir, monitor='val_acc', verbose=0,
-                                                        save_best_only=True, save_weights_only=False, mode='auto',
-                                                        period=1)
+    check_best_val_acc = keras.callbacks.ModelCheckpoint('%s/best_val_acc.h5' % models_dir, monitor='val_acc',
+                                                         verbose=0,
+                                                         save_best_only=True, save_weights_only=False, mode='auto',
+                                                         period=1)
 
     # Create callback for automatically saving lastest model so training can be resumed. Saves every epoch
-    check_latest_callback = keras.callbacks.ModelCheckpoint('%s/latest.h5' % models_dir, verbose=0, save_best_only=False,
-                                                          save_weights_only=False, mode='auto', period=1)
+    check_latest_callback = keras.callbacks.ModelCheckpoint('%s/latest.h5' % models_dir, verbose=0,
+                                                            save_best_only=False,
+                                                            save_weights_only=False, mode='auto', period=1)
 
     # Create callback for tensorboard
-    tb_callback = keras.callbacks.TensorBoard(log_dir=tb_dir, batch_size=batch_size, write_graph=False, write_grads=True)
+    tb_callback = keras.callbacks.TensorBoard(log_dir=tb_dir, batch_size=batch_size, write_graph=False,
+                                              write_grads=True)
 
     # Create list of all callbacks
-    callback_list = [check_latest_callback, tb_callback]
+    callback_list = [check_best_acc, check_latest_callback, tb_callback]
     if validation_set is not None:
-        callback_list = callback_list.append(check_best_callback)
+        callback_list = callback_list.append(check_best_val_acc)
 
     # Start tensorboard
     start_tensorboard()

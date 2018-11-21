@@ -1,6 +1,8 @@
+import os
+
 import PIL
 import numpy as np
-import os
+
 
 def check_path(name):
     """
@@ -9,10 +11,10 @@ def check_path(name):
     :return: True if pre-existing; otherwise False
     """
 
-    baseDir = os.getcwd()
-    localDir = "%s\\%s\\" % (baseDir, name)
-    if not os.path.exists(localDir):
-        os.makedirs(localDir)
+    base_dir = os.getcwd()
+    local_dir = "%s\\%s\\" % (base_dir, name)
+    if not os.path.exists(local_dir):
+        os.makedirs(local_dir)
         return True
 
     return False
@@ -26,20 +28,20 @@ def read_csv_data(filename):
     """
 
     f = open(filename, 'r')
-    fileData = f.readlines()  # Consume header line
+    file_data = f.readlines()  # Consume header line
     f.close()
 
-    header = fileData[0]
+    header = file_data[0]
     columns = len(header.split(','))
-    rows = len(fileData) - 1
+    rows = len(file_data) - 1
 
-    dataMatrix = np.zeros((rows, columns), dtype=int)
+    data_matrix = np.zeros((rows, columns), dtype=int)
     for r in range(rows):
-        currentRowData = fileData[r + 1].split(',')
+        current_row_data = file_data[r + 1].split(',')
         for c in range(columns):
-            dataMatrix[r, c] = int(currentRowData[c])
+            data_matrix[r, c] = int(current_row_data[c])
 
-    return dataMatrix
+    return data_matrix
 
 
 def read_train_data_raw(filename):
@@ -49,11 +51,11 @@ def read_train_data_raw(filename):
     :return: Tuple of training IDs, training Labels, and training Images
     """
 
-    csvData = read_csv_data(filename)
-    trainIds = csvData[:, 0]
-    trainLabels = csvData[:, 1]
-    trainImages = csvData[:, 2:]
-    return trainIds, trainLabels, trainImages
+    csv_data = read_csv_data(filename)
+    train_ids = csv_data[:, 0]
+    train_labels = csv_data[:, 1]
+    train_images = csv_data[:, 2:]
+    return train_ids, train_labels, train_images
 
 
 def read_test_data(filename):
@@ -63,10 +65,10 @@ def read_test_data(filename):
     :return: Tuple of test IDs and test Images
     """
 
-    csvData = read_csv_data(filename)
-    testIds = csvData[:, 0]
-    testImages = csvData[:, 1:]
-    return testIds, testImages
+    csv_data = read_csv_data(filename)
+    test_ids = csv_data[:, 0]
+    test_images = csv_data[:, 1:]
+    return test_ids, test_images
 
 
 def save_image(filename, image):
@@ -78,36 +80,34 @@ def save_image(filename, image):
     try:
         width = image.shape[0]
         height = image.shape[1]
-        img = PIL.Image.new('RGB', (width, height), color=(0, 0, 0))
-        for x in range(width):
-            for y in range(height):
-                grayValue = int(image[x, y, 0] * 255)
-                img.putpixel((x, y), (grayValue, grayValue, grayValue))
-        img.save(filename)
-        img.close()
+        with PIL.Image.new('RGB', (width, height), color=(0, 0, 0)) as image:
+            for x in range(width):
+                for y in range(height):
+                    gray_value = int(image[x, y, 0] * 255)
+                    image.putpixel((x, y), (gray_value, gray_value, gray_value))
+            image.save(filename)
     except Exception as e:
         print("Failed to save grayscale image to %s" % filename)
         print(e)
 
 
-def generate_classification(testIds, testLabels, runName):
+def generate_classification(test_ids, test_labels, run_name):
     """
     Generates a CSV classification file for a network that can be submitted to kaggle
-    :param testIds: The test ids to attach to each label
-    :param testLabels: The labels corresponding to each test ID
-    :param runName: The test IDs corresponding to each label
+    :param test_ids: The test ids to attach to each label
+    :param test_labels: The labels corresponding to each test ID
+    :param run_name: The test IDs corresponding to each label
     """
 
-    assert testIds.shape[0] == testLabels.shape[0], "Test IDs and Test Labels must have the same length"
+    assert test_ids.shape[0] == test_labels.shape[0], "Test IDs and Test Labels must have the same length"
 
-    curDir = os.getcwd()
-    with open('%s\\Runs\\%s\\prediction.csv' % (curDir, runName), 'w') as f:
+    cur_dir = os.getcwd()
+    with open('%s\\Runs\\%s\\prediction.csv' % (cur_dir, run_name), 'w') as f:
         f.write("Id,label\n")
-        for i in range(len(testLabels)):
-            f.write(format("%s,%s\n" % (testIds[i], testLabels[i])))
+        for i in range(len(test_labels)):
+            f.write(format("%s,%s\n" % (test_ids[i], test_labels[i])))
 
 
 def save_text(filename, text):
-    f = open(filename, 'w')
-    f.write(text)
-    f.close()
+    with open(filename, 'w') as f:
+        f.write(text)
