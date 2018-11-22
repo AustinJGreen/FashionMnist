@@ -9,8 +9,6 @@ import trainer
 # TODO: Auto submit csv file to kaggle with api
 # TODO: Add config for all training which specifies all hyper-params
 # TODO: Save more models (e.g. for loss)
-# TODO: Save zipped code in each run
-# TODO: Save network picture in each run
 
 
 def load_training_data():
@@ -116,5 +114,5 @@ if __name__ == "__main__":
     check_paths()
 
     # resume('0Val16BatchADAMandVertShifts', 'latest')
-    evaluate('0Val16BatchADAMandVertShifts', 'latest')
-    # train_new(run_name='0Val16BatchADAMandVertShifts')
+    # evaluate('0Val16BatchADAMandVertShifts', 'latest')
+    train_new(run_name='ResNetTest')

@@ -6,7 +6,7 @@ import psutil
 from keras.layers import Conv2D, LeakyReLU, BatchNormalization, Dense, Flatten, SpatialDropout2D, MaxPooling2D
 from keras.models import Sequential
 from keras.models import load_model
-from keras.optimizers import Adam, SGD
+from keras.optimizers import Adam
 
 import fileutils
 
@@ -85,6 +85,12 @@ def train_new(run_name, train_labels, train_images, validation_set):
     # Save network architecture
     yaml_str = net.to_yaml()
     fileutils.save_text('./Runs/%s/architecture.yaml' % run_name, yaml_str)
+
+    # Save network architecture image
+    keras.utils.plot_model(net, './Runs/%s/model_plot.png' % run_name, show_layer_names=False, show_shapes=True)
+
+    # Save current code as a zip
+    fileutils.save_current_code('./Runs/%s/codebase.zip' % run_name)
 
     # Compile new network with optimizer
     optimizer = Adam(lr=0.0001)

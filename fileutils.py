@@ -1,4 +1,5 @@
 import os
+from zipfile import ZipFile
 
 import PIL
 import numpy as np
@@ -124,6 +125,20 @@ def generate_classification(test_ids, test_labels, run_name):
                 f.write(format("%s,%s\n" % (test_ids[i], test_labels[i])))
     except Exception as e:
         print("Failed to generate classification")
+        print(e)
+
+
+def save_current_code(filename):
+    try:
+        with ZipFile(filename, 'w') as codebase:
+
+            # Loop through current directory and add all python files
+            cur_dir = os.getcwd()
+            for filename in os.listdir(cur_dir):
+                if os.path.isfile(filename) and filename.endswith('.py'):
+                    codebase.write(filename)
+    except Exception as e:
+        print('Failed to zip code')
         print(e)
 
 
