@@ -7,6 +7,10 @@ import processing
 import trainer
 
 # TODO: Auto submit csv file to kaggle with api
+# TODO: Add config for all training which specifies all hyper-params
+# TODO: Save more models (e.g. for loss)
+# TODO: Save zipped code in each run
+# TODO: Save network picture in each run
 
 
 def load_training_data():
@@ -18,7 +22,7 @@ def load_training_data():
     # Normalize
     print("Normalizing data...", end="", flush=True)
     train_images = processing.normalize_images(x_train)
-    train_labels = processing.convertLabels(y_train)
+    train_labels = processing.convert_labels(y_train)
     print("done.")
 
     # Shuffle data very well
@@ -111,6 +115,6 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    resume('ZeroValGood16Batch', 'latest')
-    #evaluate('ZeroValGood16Batch', 'latest')
-    #train_new(run_name='ZeroValGood16Batch')
+    resume('0Val16BatchADAMandVertShifts', 'latest')
+    # evaluate('0Val16BatchADAMandVertShifts', 'latest')
+    # train_new(run_name='0Val16BatchADAMandVertShifts')

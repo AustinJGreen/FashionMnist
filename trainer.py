@@ -6,7 +6,7 @@ import psutil
 from keras.layers import Conv2D, LeakyReLU, BatchNormalization, Dense, Flatten, SpatialDropout2D, MaxPooling2D
 from keras.models import Sequential
 from keras.models import load_model
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 
 import fileutils
 
@@ -56,10 +56,11 @@ def start_tensorboard():
     # Start new tensorboard instance
     current_path = os.getcwd()
     log_dir = '%s\\Tensorboard' % current_path
-    Popen(['tensorboard', '--logdir=%s' % log_dir], shell=True)
+    Popen(['tensorboard', '--logdir=%s' % log_dir, '--host=localhost'], shell=True)
 
 
 def delete_tensorboard_data(run_name):
+    # Get tensorboard data path and delete all event files
     current_path = os.getcwd()
     base_dir = '%s\\Tensorboard\\%s\\' % (current_path, run_name)
     paths = os.listdir(base_dir)
@@ -94,21 +95,40 @@ def train_new(run_name, train_labels, train_images, validation_set):
 
 
 def train_existing(run_name, model_path, train_labels, train_images, validation_set):
-
-    # Make sure tensorboard is not running, so we can delete old data
-    stop_tensorboard()
-
-    # Delete old data because epochs are being reset to 0
-    delete_tensorboard_data(run_name)
-
     # Load network from file
     net = load_model(model_path)
 
+    # Read last training epoch
+    last_epoch = 0
+
+    cur_dir = os.getcwd()
+    epoch_data_file = "%s\\Runs\\%s\\training_epoch.dat" % (cur_dir, run_name)
+
+    # Check if last epoch data exists
+    if os.path.exists(epoch_data_file):
+
+        # Try to parse data
+        epoch_data = fileutils.read_text(epoch_data_file)
+        if epoch_data is not None:
+            last_epoch = int(epoch_data)
+
+    # Test to see if we have the last epoch number
+    if last_epoch == 0:
+        # If we don't, lets delete the data so we can restart the tensorboard graph
+        # First, make sure tensorboard is not running, so we can delete old data
+        stop_tensorboard()
+
+        # Delete old data because epochs are being reset to 0
+        delete_tensorboard_data(run_name)
+
     # Train model
-    train_model(run_name, net, train_labels, train_images, validation_set)
+    train_model(run_name, net, train_labels, train_images, validation_set, last_epoch)
 
 
-def train_model(run_name, net, train_labels, train_images, validation_set):
+def train_model(run_name, net, train_labels, train_images, validation_set, epoch_start=1):
+    # Get current working directory
+    cur_dir = os.getcwd()
+
     # Get tensorboard directory
     tb_dir = "./Tensorboard/%s" % run_name
 
@@ -117,6 +137,11 @@ def train_model(run_name, net, train_labels, train_images, validation_set):
 
     # Set batch size
     batch_size = 16
+
+    # Create callback for saving latest epoch number
+    save_epoch_callback = keras.callbacks.LambdaCallback(
+        on_epoch_end=lambda epoch, logs: fileutils.save_text("%s\\Runs\\%s\\training_epoch.dat" % (cur_dir, run_name),
+                                                             str(epoch + 1)))
 
     # Create callback for automatically saving best model based on highest regular accuracy
     check_best_acc = keras.callbacks.ModelCheckpoint('%s/best_acc.h5' % models_dir, monitor='acc', verbose=0,
@@ -138,17 +163,17 @@ def train_model(run_name, net, train_labels, train_images, validation_set):
     tb_callback = keras.callbacks.TensorBoard(log_dir=tb_dir, batch_size=batch_size, write_graph=False,
                                               write_grads=True)
 
-    # Create list of all callbacks
-    callback_list = [check_best_acc, check_latest_callback, tb_callback]
+    # Create list of all callbacks, put least important callbacks (unstable ones that may fail) at end
+    callback_list = [check_best_acc, check_latest_callback, tb_callback, save_epoch_callback, ]
     if validation_set is not None:
-        callback_list = callback_list.append(check_best_val_acc)
+        callback_list = callback_list.insert(0, check_best_val_acc)  # Put at beginning of list
 
     # Start tensorboard
     start_tensorboard()
 
     # Train network and save best model along the way
     net.fit(train_images, train_labels, batch_size=batch_size, epochs=150, verbose=2, shuffle=True,
-            validation_data=validation_set, callbacks=callback_list)
+            validation_data=validation_set, callbacks=callback_list, initial_epoch=epoch_start)
 
 
 def evaluate(test_images, model_path):
@@ -168,4 +193,5 @@ def evaluate(test_images, model_path):
                 highest_value = onehot_predictions[i][j]
                 highest_index = j
         test_labels[i] = highest_index
+
     return test_labels

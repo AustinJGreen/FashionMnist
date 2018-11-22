@@ -11,6 +11,7 @@ Runs/
 *.yaml
 *.png
 *.h5
+*.dat
 
 # Pycharm Project
 .idea/
