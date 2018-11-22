@@ -115,6 +115,6 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    resume('0Val16BatchADAMandVertShifts', 'latest')
-    # evaluate('0Val16BatchADAMandVertShifts', 'latest')
+    # resume('0Val16BatchADAMandVertShifts', 'latest')
+    evaluate('0Val16BatchADAMandVertShifts', 'latest')
     # train_new(run_name='0Val16BatchADAMandVertShifts')
