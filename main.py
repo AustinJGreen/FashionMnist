@@ -29,18 +29,13 @@ def load_training_data():
     print("done.")
 
     print("Generating validation set...", end="", flush=True)
-    validation_set_size = int(0 * train_images.shape[0])
+    validation_set_size = int(0.2 * train_images.shape[0])
     validation_set = None
     if validation_set_size > 0:
         validation_set = (train_images[-validation_set_size:], train_labels[-validation_set_size:])
-
-        # TODO: Test distribution
-        max_sums = np.sum(train_labels, axis=0)
-
         train_images = train_images[:-validation_set_size]
         train_labels = train_labels[:-validation_set_size]
 
-        label_sums = np.sum(train_labels, axis=0)
     print("done.")
 
     # Run Test
@@ -115,4 +110,4 @@ if __name__ == "__main__":
 
     # resume('0Val16BatchADAMandVertShifts', 'latest')
     # evaluate('0Val16BatchADAMandVertShifts', 'latest')
-    train_new(run_name='ResNetTest')
+    train_new(run_name='ResnetVal20per')

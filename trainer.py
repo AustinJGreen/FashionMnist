@@ -3,8 +3,9 @@ from subprocess import Popen
 
 import keras
 import psutil
-from keras.layers import Conv2D, LeakyReLU, BatchNormalization, Dense, Flatten, SpatialDropout2D, MaxPooling2D
-from keras.models import Sequential
+from keras.layers import Conv2D, LeakyReLU, BatchNormalization, Dense, Flatten, SpatialDropout2D, MaxPooling2D, Add, \
+    Input, AveragePooling2D
+from keras.models import Model, Sequential
 from keras.models import load_model
 from keras.optimizers import Adam
 
@@ -36,6 +37,44 @@ def build_network():
     net.add(Dense(10, activation='softmax'))
 
     return net
+
+
+def build_residual_network():
+
+    input_tensor = Input(shape=(28, 28, 1))
+
+    shortcut_conv = input_tensor
+
+    net = Conv2D(64, kernel_size=(1, 1))(input_tensor)
+    net = BatchNormalization(momentum=0.8)(net)
+
+    # Activation for first layer
+    net = LeakyReLU(alpha=0.2)(net)
+    net = SpatialDropout2D(0.25)(net)
+
+    # Second to third layer convolution
+    net = Conv2D(32, kernel_size=(1, 1))(net)
+    net = BatchNormalization(momentum=0.8)(net)
+
+    # First to third layer convolution
+    shortcut_conv = Conv2D(32, kernel_size=(1, 1))(shortcut_conv)
+    shortcut_conv = BatchNormalization(momentum=0.8)(shortcut_conv)
+
+    net = Add()([shortcut_conv, net])
+
+    # Activation for second layer
+    net = LeakyReLU(alpha=0.2)(net)
+    net = SpatialDropout2D(0.25)(net)
+
+    net = AveragePooling2D(pool_size=(2, 2))(net)
+
+    net = Flatten()(net)
+    net = Dense(128, activation=None)(net)
+    net = LeakyReLU(alpha=0.2)(net)
+    net = BatchNormalization(momentum=0.8)(net)
+    output = Dense(10, activation='softmax')(net)
+
+    return Model(inputs=input_tensor, outputs=output)
 
 
 def stop_tensorboard():
@@ -80,7 +119,7 @@ def train_new(run_name, train_labels, train_images, validation_set):
     os.makedirs(models_dir)
 
     # Create network and configure optimizer
-    net = build_network()
+    net = build_residual_network()
 
     # Save network architecture
     yaml_str = net.to_yaml()
@@ -131,7 +170,7 @@ def train_existing(run_name, model_path, train_labels, train_images, validation_
     train_model(run_name, net, train_labels, train_images, validation_set, last_epoch)
 
 
-def train_model(run_name, net, train_labels, train_images, validation_set, epoch_start=1):
+def train_model(run_name, net, train_labels, train_images, validation_set, epoch_start=0):
     # Get current working directory
     cur_dir = os.getcwd()
 
@@ -172,13 +211,13 @@ def train_model(run_name, net, train_labels, train_images, validation_set, epoch
     # Create list of all callbacks, put least important callbacks (unstable ones that may fail) at end
     callback_list = [check_best_acc, check_latest_callback, tb_callback, save_epoch_callback, ]
     if validation_set is not None:
-        callback_list = callback_list.insert(0, check_best_val_acc)  # Put at beginning of list
+        callback_list.insert(0, check_best_val_acc)  # Put at beginning of list
 
     # Start tensorboard
     start_tensorboard()
 
     # Train network and save best model along the way
-    net.fit(train_images, train_labels, batch_size=batch_size, epochs=150, verbose=2, shuffle=True,
+    net.fit(x=train_images, y=train_labels, batch_size=batch_size, epochs=150, verbose=2, shuffle=True,
             validation_data=validation_set, callbacks=callback_list, initial_epoch=epoch_start)
 
 
