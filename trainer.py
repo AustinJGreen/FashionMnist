@@ -1,4 +1,5 @@
 import os
+import socket
 from subprocess import Popen
 
 import keras
@@ -18,17 +19,17 @@ def build_network():
     # br = keras.regularizers.l2(0.001)
 
     net = Sequential()
-    net.add(Conv2D(64, kernel_size=5, input_shape=(28, 28, 1)))
+    net.add(Conv2D(32, kernel_size=5, input_shape=(28, 28, 1)))
     net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
     net.add(MaxPooling2D(pool_size=(2, 2)))
-    net.add(SpatialDropout2D(0.25))
+    net.add(SpatialDropout2D(0.3))
 
-    net.add(Conv2D(32, kernel_size=3))
+    net.add(Conv2D(64, kernel_size=3))
     net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
     net.add(MaxPooling2D(pool_size=(2, 2)))
-    net.add(SpatialDropout2D(0.25))
+    net.add(SpatialDropout2D(0.3))
 
     net.add(Flatten())
     net.add(Dense(128, activation=None))
@@ -95,7 +96,11 @@ def start_tensorboard():
     # Start new tensorboard instance
     current_path = os.getcwd()
     log_dir = '%s\\Tensorboard' % current_path
-    Popen(['tensorboard', '--logdir=%s' % log_dir, '--host=localhost'], shell=True)
+
+    # Get local ip address
+    localhn = socket.gethostbyname(socket.gethostname())
+
+    Popen(['tensorboard', '--logdir=%s' % log_dir, '--host=%s' % localhn], shell=True)
 
 
 def delete_tensorboard_data(run_name):
@@ -119,7 +124,7 @@ def train_new(run_name, train_labels, train_images, validation_set):
     os.makedirs(models_dir)
 
     # Create network and configure optimizer
-    net = build_residual_network()
+    net = build_network()
 
     # Save network architecture
     yaml_str = net.to_yaml()
@@ -217,7 +222,7 @@ def train_model(run_name, net, train_labels, train_images, validation_set, epoch
     start_tensorboard()
 
     # Train network and save best model along the way
-    net.fit(x=train_images, y=train_labels, batch_size=batch_size, epochs=150, verbose=2, shuffle=True,
+    net.fit(x=train_images, y=train_labels, batch_size=batch_size, epochs=350, verbose=2, shuffle=True,
             validation_data=validation_set, callbacks=callback_list, initial_epoch=epoch_start)
 
 

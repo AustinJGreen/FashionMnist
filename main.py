@@ -29,7 +29,7 @@ def load_training_data():
     print("done.")
 
     print("Generating validation set...", end="", flush=True)
-    validation_set_size = int(0.2 * train_images.shape[0])
+    validation_set_size = int(0 * train_images.shape[0])
     validation_set = None
     if validation_set_size > 0:
         validation_set = (train_images[-validation_set_size:], train_labels[-validation_set_size:])
@@ -108,6 +108,6 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    # resume('0Val16BatchADAMandVertShifts', 'latest')
-    # evaluate('0Val16BatchADAMandVertShifts', 'latest')
-    train_new(run_name='ResnetVal20per')
+    resume('94RunDiffFiltersLessDropout', 'latest')
+    # evaluate('94RunDiffFiltersLessDropout', 'latest')
+    # train_new(run_name='94RunMoreDropout')
