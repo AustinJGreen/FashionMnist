@@ -108,6 +108,6 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    resume('94RunDiffFiltersLessDropout', 'latest')
-    # evaluate('94RunDiffFiltersLessDropout', 'latest')
-    # train_new(run_name='94RunMoreDropout')
+    # resume('94RunMoreDropout', 'latest')
+    # evaluate('94RunMoreDropout', 'latest')
+    train_new(run_name='Resnet1')

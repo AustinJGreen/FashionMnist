@@ -46,7 +46,7 @@ def build_residual_network():
 
     shortcut_conv = input_tensor
 
-    net = Conv2D(64, kernel_size=(1, 1))(input_tensor)
+    net = Conv2D(32, kernel_size=(5, 5))(input_tensor)
     net = BatchNormalization(momentum=0.8)(net)
 
     # Activation for first layer
@@ -54,11 +54,11 @@ def build_residual_network():
     net = SpatialDropout2D(0.25)(net)
 
     # Second to third layer convolution
-    net = Conv2D(32, kernel_size=(1, 1))(net)
+    net = Conv2D(64, kernel_size=(3, 3))(net)
     net = BatchNormalization(momentum=0.8)(net)
 
     # First to third layer convolution
-    shortcut_conv = Conv2D(32, kernel_size=(1, 1))(shortcut_conv)
+    shortcut_conv = Conv2D(64, kernel_size=(3, 3))(shortcut_conv)
     shortcut_conv = BatchNormalization(momentum=0.8)(shortcut_conv)
 
     net = Add()([shortcut_conv, net])
