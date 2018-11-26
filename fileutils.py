@@ -1,4 +1,5 @@
 import os
+from zipfile import ZipFile
 
 import PIL
 import numpy as np
@@ -91,6 +92,21 @@ def save_image(filename, image):
         print(e)
 
 
+def save_images(directory, image_set, count):
+    """
+    Saves a random batch of grayscale images to a directory
+    :param directory: Directory to save the images to
+    :param image_set: Image set to draw grayscale [0, 1] images from
+    :param count: The amount of images to save
+    """
+
+    image_set_count = image_set.shape[0]
+    for i in range(count):
+        random_index = np.random.randint(0, image_set_count)
+        image = image_set[random_index]
+        save_image(format("%s/image%s.png" % (directory, random_index)), image)
+
+
 def generate_classification(test_ids, test_labels, run_name):
     """
     Generates a CSV classification file for a network that can be submitted to kaggle
@@ -102,12 +118,47 @@ def generate_classification(test_ids, test_labels, run_name):
     assert len(test_ids) == len(test_labels), "Test IDs and Test Labels must have the same length"
 
     cur_dir = os.getcwd()
-    with open('%s\\Runs\\%s\\prediction.csv' % (cur_dir, run_name), 'w') as f:
-        f.write("Id,label\n")
-        for i in range(len(test_labels)):
-            f.write(format("%s,%s\n" % (test_ids[i], test_labels[i])))
+    try:
+        with open('%s\\Runs\\%s\\prediction.csv' % (cur_dir, run_name), 'w') as f:
+            f.write("Id,label\n")
+            for i in range(len(test_labels)):
+                f.write(format("%s,%s\n" % (test_ids[i], test_labels[i])))
+    except Exception as e:
+        print("Failed to generate classification")
+        print(e)
+
+
+def save_current_code(filename):
+    try:
+        with ZipFile(filename, 'w') as codebase:
+
+            # Loop through current directory and add all python files
+            cur_dir = os.getcwd()
+            for filename in os.listdir(cur_dir):
+                if os.path.isfile(filename) and filename.endswith('.py'):
+                    codebase.write(filename)
+    except Exception as e:
+        print('Failed to zip code')
+        print(e)
 
 
 def save_text(filename, text):
-    with open(filename, 'w') as f:
-        f.write(text)
+    try:
+        with open(filename, 'w') as f:
+            f.write(text)
+    except Exception as e:
+        print("Failed to save text to %s" % filename)
+        print(e)
+
+
+def read_text(filename):
+    assert os.path.exists(filename), "Path does not exist, cannot read text."
+
+    try:
+        with open(filename, 'r') as f:
+            return f.read()
+    except Exception as e:
+        print("Failed to save text to %s" % filename)
+        print(e)
+
+    return None

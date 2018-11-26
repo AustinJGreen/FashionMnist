@@ -7,6 +7,8 @@ import processing
 import trainer
 
 # TODO: Auto submit csv file to kaggle with api
+# TODO: Add config for all training which specifies all hyper-params
+# TODO: Save more models (e.g. for loss)
 
 
 def load_training_data():
@@ -18,7 +20,7 @@ def load_training_data():
     # Normalize
     print("Normalizing data...", end="", flush=True)
     train_images = processing.normalize_images(x_train)
-    train_labels = processing.convertLabels(y_train)
+    train_labels = processing.convert_labels(y_train)
     print("done.")
 
     # Shuffle data very well
@@ -31,14 +33,9 @@ def load_training_data():
     validation_set = None
     if validation_set_size > 0:
         validation_set = (train_images[-validation_set_size:], train_labels[-validation_set_size:])
-
-        # TODO: Test distribution
-        max_sums = np.sum(train_labels, axis=0)
-
         train_images = train_images[:-validation_set_size]
         train_labels = train_labels[:-validation_set_size]
 
-        label_sums = np.sum(train_labels, axis=0)
     print("done.")
 
     # Run Test
@@ -111,6 +108,6 @@ def check_paths():
 if __name__ == "__main__":
     check_paths()
 
-    resume('ZeroValGood16Batch', 'latest')
-    #evaluate('ZeroValGood16Batch', 'latest')
-    #train_new(run_name='ZeroValGood16Batch')
+    # resume('94RunMoreDropout', 'latest')
+    # evaluate('94RunMoreDropout', 'latest')
+    train_new(run_name='Resnet1')

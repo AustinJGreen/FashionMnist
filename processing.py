@@ -1,6 +1,5 @@
 import math
 
-import keras
 import numpy as np
 import numpy.ma as ma
 
@@ -19,11 +18,23 @@ def normalize_images(raw_images):
     return normalized_images
 
 
-def convertLabels(raw_labels):
+def convert_labels(raw_labels, categories=10):
 
-    # TODO: Write own method here instead of using keras's method
-    one_hot_labels = keras.utils.to_categorical(raw_labels, num_classes=10)
-    return one_hot_labels
+    # Use label smoothing
+    # http://www.deeplearningbook.org/contents/regularization.html
+    # Section 7.5.1
+
+    epsilon = 1e-10
+    fill_value = epsilon / (categories - 1)
+    hot_value = 1 - epsilon
+    label_count = raw_labels.shape[0]
+
+    soft_labels = np.full((label_count, 10), fill_value=fill_value, dtype=float)
+
+    for label in range(label_count):
+        soft_labels[label, raw_labels[label]] = hot_value
+
+    return soft_labels
 
 
 def shift_horizontal(arr, num):
@@ -71,26 +82,31 @@ def augment_images(images, labels):
     # Shift every image left,right,up,down, fill with black (0)
     shifted_right = shift_horizontal(images, 2)
     shifted_left = shift_horizontal(images, -2)
+    shifted_up = shift_vertical(images, -2)
+    shifted_down = shift_vertical(images, 2)
 
     # Add or subtract contrast from all the images
     contrasted = add_contrast(images, -0.02, 0.02)
 
     # Add shifted images
-    aug_images = np.concatenate((images, flipped_images, shifted_left, shifted_right, contrasted), axis=0)
+    aug_images = np.concatenate((images, flipped_images, shifted_left, shifted_right, shifted_up, shifted_down, contrasted), axis=0)
 
-    # Calculate amount of augmentation done so we can repeat the labels
+    # Calculate amount of augmentation done so we can repeat/tile the labels
     repeats = int(aug_images.shape[0] / images.shape[0])
 
     aug_labels = np.tile(labels, (repeats, 1))
     return aug_images, aug_labels
 
 
-def shuffle(images, labels):
+def shuffle(images, labels, shuffles=10):
+    if shuffles <= 0:
+        return
+
     size = images.shape[0]
     permutation = np.random.permutation(size)
     shuffled_images = images[permutation]
     shuffled_labels = labels[permutation]
-    for i in range(9):
+    for i in range(shuffles - 1):
         permutation = np.random.permutation(size)
         shuffled_images = shuffled_images[permutation]
         shuffled_labels = shuffled_labels[permutation]
