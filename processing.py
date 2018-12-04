@@ -19,7 +19,6 @@ def normalize_images(raw_images):
 
 
 def convert_labels(raw_labels, categories=10):
-
     # Use label smoothing
     # http://www.deeplearningbook.org/contents/regularization.html
     # Section 7.5.1
@@ -76,7 +75,8 @@ def add_contrast(arr, min, max):
 
 
 def augment_images(images, labels):
-    # Flip images
+
+    # Flip images horizontally
     flipped_images = np.fliplr(images)
 
     # Shift every image left,right,up,down, fill with black (0)
@@ -89,7 +89,8 @@ def augment_images(images, labels):
     contrasted = add_contrast(images, -0.02, 0.02)
 
     # Add shifted images
-    aug_images = np.concatenate((images, flipped_images, shifted_left, shifted_right, shifted_up, shifted_down, contrasted), axis=0)
+    aug_images = np.concatenate(
+        (images, flipped_images, shifted_left, shifted_right, shifted_up, shifted_down, contrasted), axis=0)
 
     # Calculate amount of augmentation done so we can repeat/tile the labels
     repeats = int(aug_images.shape[0] / images.shape[0])
