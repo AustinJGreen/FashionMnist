@@ -5,7 +5,7 @@ from subprocess import Popen
 import keras
 import psutil
 from keras.layers import Conv2D, LeakyReLU, BatchNormalization, Dense, Flatten, SpatialDropout2D, MaxPooling2D, Add, \
-    Input, AveragePooling2D
+    AveragePooling2D, ReLU, Dropout
 from keras.models import Model, Sequential
 from keras.models import load_model
 from keras.optimizers import Adam
@@ -14,68 +14,32 @@ import fileutils
 
 
 def build_network():
-    # kernel_init = keras.initializers.RandomUniform(minval=-0.1, maxval=0.1, seed=None)
-    # kernel_reg = keras.regularizers.l2(0.001)
-    # br = keras.regularizers.l2(0.001)
-
     net = Sequential()
-    net.add(Conv2D(32, kernel_size=5, input_shape=(28, 28, 1)))
+
+    net.add(Conv2D(32, kernel_size=5, input_shape=(28, 28, 1), padding='same'))
     net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
+
     net.add(MaxPooling2D(pool_size=(2, 2)))
     net.add(SpatialDropout2D(0.3))
 
-    net.add(Conv2D(64, kernel_size=3))
+    net.add(Conv2D(64, kernel_size=3, padding='same'))
     net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
+
     net.add(MaxPooling2D(pool_size=(2, 2)))
     net.add(SpatialDropout2D(0.3))
 
     net.add(Flatten())
-    net.add(Dense(128, activation=None))
-    net.add(LeakyReLU(alpha=0.2))
+
+    net.add(Dense(256, activation=None))
     net.add(BatchNormalization(momentum=0.8))
+    net.add(ReLU())
+    net.add(Dropout(0.1))
+
     net.add(Dense(10, activation='softmax'))
 
     return net
-
-
-def build_residual_network():
-
-    input_tensor = Input(shape=(28, 28, 1))
-
-    shortcut_conv = input_tensor
-
-    net = Conv2D(32, kernel_size=(5, 5))(input_tensor)
-    net = BatchNormalization(momentum=0.8)(net)
-
-    # Activation for first layer
-    net = LeakyReLU(alpha=0.2)(net)
-    net = SpatialDropout2D(0.25)(net)
-
-    # Second to third layer convolution
-    net = Conv2D(64, kernel_size=(3, 3))(net)
-    net = BatchNormalization(momentum=0.8)(net)
-
-    # First to third layer convolution
-    shortcut_conv = Conv2D(64, kernel_size=(3, 3))(shortcut_conv)
-    shortcut_conv = BatchNormalization(momentum=0.8)(shortcut_conv)
-
-    net = Add()([shortcut_conv, net])
-
-    # Activation for second layer
-    net = LeakyReLU(alpha=0.2)(net)
-    net = SpatialDropout2D(0.25)(net)
-
-    net = AveragePooling2D(pool_size=(2, 2))(net)
-
-    net = Flatten()(net)
-    net = Dense(128, activation=None)(net)
-    net = LeakyReLU(alpha=0.2)(net)
-    net = BatchNormalization(momentum=0.8)(net)
-    output = Dense(10, activation='softmax')(net)
-
-    return Model(inputs=input_tensor, outputs=output)
 
 
 def stop_tensorboard():
@@ -85,6 +49,12 @@ def stop_tensorboard():
             p.kill()  # Kill tensorboard
             p.wait()  # Wait for it to terminate
             return
+
+
+def get_local_ipv4():
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.connect('8.8.8.8')
+        return s.getsockname()[0]
 
 
 def start_tensorboard():
@@ -98,9 +68,10 @@ def start_tensorboard():
     log_dir = '%s\\Tensorboard' % current_path
 
     # Get local ip address
-    localhn = socket.gethostbyname(socket.gethostname())
+    local_host = get_local_ipv4()
 
-    Popen(['tensorboard', '--logdir=%s' % log_dir, '--host=%s' % localhn], shell=True)
+    # Start process
+    Popen(['tensorboard', '--logdir=%s' % log_dir, '--host=%s' % local_host], shell=True)
 
 
 def delete_tensorboard_data(run_name):
@@ -195,14 +166,24 @@ def train_model(run_name, net, train_labels, train_images, validation_set, epoch
 
     # Create callback for automatically saving best model based on highest regular accuracy
     check_best_acc = keras.callbacks.ModelCheckpoint('%s/best_acc.h5' % models_dir, monitor='acc', verbose=0,
-                                                     save_best_only=True, save_weights_only=False, mode='auto',
+                                                     save_best_only=True, save_weights_only=False, mode='max',
                                                      period=1)
 
     # Create callback for automatically saving best model based on highest validation accuracy
     check_best_val_acc = keras.callbacks.ModelCheckpoint('%s/best_val_acc.h5' % models_dir, monitor='val_acc',
                                                          verbose=0,
-                                                         save_best_only=True, save_weights_only=False, mode='auto',
+                                                         save_best_only=True, save_weights_only=False, mode='max',
                                                          period=1)
+
+    # Create callback for automatically saving best model base on lowest validation loss
+    check_best_val_loss = keras.callbacks.ModelCheckpoint('%s/best_val_loss.h5' % models_dir, monitor='val_loss',
+                                                          verbose=0,
+                                                          save_best_only=True, save_weights_only=False, mode='min',
+                                                          period=1)
+
+    # Create periodic checkmark model every 50 epochs in case we need to revert back from latest
+    checkpoint_callback = keras.callbacks.ModelCheckpoint('%s/epoch{epoch:03d}.h5' % models_dir, verbose=0,
+                                                          save_best_only=False, mode='auto', period=5)
 
     # Create callback for automatically saving lastest model so training can be resumed. Saves every epoch
     check_latest_callback = keras.callbacks.ModelCheckpoint('%s/latest.h5' % models_dir, verbose=0,
@@ -214,9 +195,11 @@ def train_model(run_name, net, train_labels, train_images, validation_set, epoch
                                               write_grads=True)
 
     # Create list of all callbacks, put least important callbacks (unstable ones that may fail) at end
-    callback_list = [check_best_acc, check_latest_callback, tb_callback, save_epoch_callback, ]
+    callback_list = [check_best_acc, checkpoint_callback, check_latest_callback, tb_callback, save_epoch_callback]
+
     if validation_set is not None:
         callback_list.insert(0, check_best_val_acc)  # Put at beginning of list
+        callback_list.insert(0, check_best_val_loss)
 
     # Start tensorboard
     start_tensorboard()

@@ -24,6 +24,7 @@ Here are some things you'll need to get started.
 3. keras: `pip3 install keras`
 4. python imaging library: `pip3 install Pillow`
 5. Process and system utilities library `pip3 install psutil`
+6. Kaggle API library `pip3 install kaggle`
 
 ### Downloading the dataset
 The csv files are too large for us to put in the repository. 
