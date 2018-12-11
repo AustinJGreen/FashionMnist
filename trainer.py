@@ -16,7 +16,15 @@ import fileutils
 def build_network():
     net = Sequential()
 
-    net.add(Conv2D(32, kernel_size=5, input_shape=(28, 28, 1), padding='same'))
+    net.add(Conv2D(16, kernel_size=5, input_shape=(28, 28, 1), padding='same'))
+    net.add(BatchNormalization(momentum=0.8))
+    net.add(LeakyReLU(alpha=0.2))
+
+    net.add(Conv2D(32, kernel_size=5, padding='same'))
+    net.add(BatchNormalization(momentum=0.8))
+    net.add(LeakyReLU(alpha=0.2))
+
+    net.add(Conv2D(64, kernel_size=5, padding='same'))
     net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
 
@@ -27,12 +35,20 @@ def build_network():
     net.add(BatchNormalization(momentum=0.8))
     net.add(LeakyReLU(alpha=0.2))
 
+    net.add(Conv2D(128, kernel_size=3, padding='same'))
+    net.add(BatchNormalization(momentum=0.8))
+    net.add(LeakyReLU(alpha=0.2))
+
+    net.add(Conv2D(256, kernel_size=3, padding='same'))
+    net.add(BatchNormalization(momentum=0.8))
+    net.add(LeakyReLU(alpha=0.2))
+
     net.add(MaxPooling2D(pool_size=(2, 2)))
     net.add(SpatialDropout2D(0.3))
 
     net.add(Flatten())
 
-    net.add(Dense(256, activation=None))
+    net.add(Dense(512, activation=None))
     net.add(BatchNormalization(momentum=0.8))
     net.add(ReLU())
     net.add(Dropout(0.1))
@@ -53,7 +69,7 @@ def stop_tensorboard():
 
 def get_local_ipv4():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.connect('8.8.8.8')
+        s.connect(("8.8.8.8", 80))
         return s.getsockname()[0]
 
 
@@ -157,7 +173,7 @@ def train_model(run_name, net, train_labels, train_images, validation_set, epoch
     models_dir = './Runs/%s/Models' % run_name
 
     # Set batch size
-    batch_size = 16
+    batch_size = 64
 
     # Create callback for saving latest epoch number
     save_epoch_callback = keras.callbacks.LambdaCallback(
@@ -227,4 +243,4 @@ def evaluate(test_images, model_path):
                 highest_index = j
         test_labels[i] = highest_index
 
-    return test_labels
+    return onehot_predictions, test_labels

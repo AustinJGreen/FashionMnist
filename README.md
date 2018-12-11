@@ -31,3 +31,18 @@ The csv files are too large for us to put in the repository.
 1. Create a folder called **Data** 
 2. Download the dataset [here](https://www.kaggle.com/c/10548/download-all)
 3. Put train.csv and test.csv in the **Data** folder you created.
+
+## Class Descriptions
+   Here are some of the descriptions for each of our classes.
+    
+### Fileutils.py
+This class is used to read in all the files necessary for the training including the training images, testing images, and CSV files, which are the tasks handled by each function from within the class. Once the training has been completed, this class generates the CSV file containing the resulting data from the training session.
+
+### Processing.py
+The functions for processing the images utilize matrix operations to generate the new training sets through normalization, shifting flipping, and shuffling the images, and adding contrast to the given data sets. 
+
+### Tests.py
+Used to save data augmentation and analyze the data.
+
+### Trainer.py
+Holds the code to train, load, and build networks.
