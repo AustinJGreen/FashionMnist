@@ -21,10 +21,11 @@ def check_path(name):
     return False
 
 
-def read_csv_data(filename):
+def read_csv_data(filename, data_type=int):
     """
     Reads raw CSV data from a file
     :param filename: CSV file
+    :param data_type: Data type to use to load the data
     :return: Data from the CSV file formatted as a matrix
     """
 
@@ -36,11 +37,11 @@ def read_csv_data(filename):
     columns = len(header.split(','))
     rows = len(file_data) - 1
 
-    data_matrix = np.zeros((rows, columns), dtype=int)
+    data_matrix = np.zeros((rows, columns), dtype=data_type)
     for r in range(rows):
         current_row_data = file_data[r + 1].split(',')
         for c in range(columns):
-            data_matrix[r, c] = int(current_row_data[c])
+            data_matrix[r, c] = current_row_data[c]
 
     return data_matrix
 
@@ -59,7 +60,7 @@ def read_train_data_raw(filename):
     return train_ids, train_labels, train_images
 
 
-def read_test_data(filename):
+def read_test_data_raw(filename):
     """
     Reads raw test data from kaggle's CSV file
     :param filename: The CSV file
@@ -74,25 +75,66 @@ def read_test_data(filename):
 
 def save_image(filename, image):
     """
+    Saves a [0, 255] image to a file
+    :param filename: The file to save the image to
+    :param image: The [0, 255] image to save
+    """
+    if os.path.exists(filename):
+        os.remove(filename)
+
+    try:
+        width = image.shape[0]
+        height = image.shape[1]
+        with PIL.Image.new('RGB', (width, height), color=(0, 0, 0)) as png:
+            for x in range(width):
+                for y in range(height):
+                    gray_value = int(image[x, y])
+                    png.putpixel((x, y), (gray_value, gray_value, gray_value))
+                    png.save(filename)
+    except Exception as e:
+        print("Failed to save  image to %s" % filename)
+        print(e)
+
+
+def save_grayscale_image(filename, image):
+    """
     Saves a [0, 1] grayscale image to a file
     :param filename: The file to save the image to
     :param image: The [0, 1] grayscale image to save
     """
+    if os.path.exists(filename):
+        os.remove(filename)
+
     try:
         width = image.shape[0]
         height = image.shape[1]
-        with PIL.Image.new('RGB', (width, height), color=(0, 0, 0)) as image:
+        with PIL.Image.new('RGB', (width, height), color=(0, 0, 0)) as png:
             for x in range(width):
                 for y in range(height):
                     gray_value = int(image[x, y, 0] * 255)
-                    image.putpixel((x, y), (gray_value, gray_value, gray_value))
-            image.save(filename)
+                    png.putpixel((x, y), (gray_value, gray_value, gray_value))
+                    png.save(filename)
     except Exception as e:
         print("Failed to save grayscale image to %s" % filename)
         print(e)
 
 
 def save_images(directory, image_set, count):
+    """
+    Saves a random batch of  images to a directory
+    :param directory: Directory to save the images to
+    :param image_set: Image set to draw [0, 255] images from
+    :param count: The amount of images to save
+    """
+
+    image_set_count = image_set.shape[0]
+    for i in range(count):
+        random_index = np.random.randint(0, image_set_count)
+        image = image_set[random_index]
+        save_image(format("%s\\image%s.png" % (directory, random_index)), image)
+
+
+def save_grayscale_images(directory, image_set, count):
     """
     Saves a random batch of grayscale images to a directory
     :param directory: Directory to save the images to
@@ -104,7 +146,7 @@ def save_images(directory, image_set, count):
     for i in range(count):
         random_index = np.random.randint(0, image_set_count)
         image = image_set[random_index]
-        save_image(format("%s/image%s.png" % (directory, random_index)), image)
+        save_grayscale_image(format("%s\\image%s.png" % (directory, random_index)), image)
 
 
 def generate_classification(test_ids, test_labels, run_name):
